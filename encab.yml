@@ -1,14 +1,12 @@
 encab:
-    halt_on_exit: True
-    loglevel: INFO
-    environment:
-        X: "1"
-    umask: "770"
+    debug: true
+    halt_on_exit: False
 programs:
     sleep:
-        command: sleep 10
+        startup_delay: 1.0
+        command: sleep 2
     main:
         umask: "770"
         environment:
             Y: "2"
-        command: sleep 10
+        command: sleep 5

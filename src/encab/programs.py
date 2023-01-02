@@ -46,20 +46,19 @@ class Programs(object):
                 "No main program to run! "
                 "The main program must be defined in encab.yml or passed as argument on startup!"
             )
-            
+
         self.main: Program = main
-        self.join_time: float = 1.0
 
     def start_helpers(self):
         for helper in self.helpers:
-            helper.start()
+            helper.start(helper.config.join_time)
 
     def stop_helpers(self):
         for helper in reversed(self.helpers):
             helper.terminate()
 
         for helper in reversed(self.helpers):
-            helper.join(self.join_time)
+            helper.join(helper.config.join_time)
 
     def run(
         self,

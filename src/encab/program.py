@@ -12,7 +12,6 @@ from enum import IntEnum
 from subprocess import Popen, PIPE
 from threading import Thread, Lock
 from queue import Queue, Empty
-import shlex
 
 from logging import Logger, DEBUG, INFO, ERROR, getLogger
 
@@ -42,6 +41,10 @@ class ProgramObserver(ABC):
 
     @abstractmethod
     def on_execution(self, cmd: List[str], env: Dict[str, str], config: ProgramConfig):
+        pass
+
+    @abstractmethod
+    def on_wait(self, startup_time: float):
         pass
 
     @abstractmethod
@@ -115,6 +118,11 @@ class LoggingProgramObserver(ProgramObserver):
             self.logger.debug(
                 "umask: 0o%s", format(config.umask, "o"), extra=self.extra
             )
+
+    def on_wait(self, startup_time: float):
+        self.logger.debug(
+            "Waiting %1.2f seconds to start...", startup_time, extra=self.extra
+        )
 
     def on_run(self, pid: int):
         self.logger.debug("Process pid %d", pid, extra=self.extra)
@@ -299,10 +307,22 @@ class ProgramState(object):
                 self.observer.on_wait_timeout(timeout or -1)
                 return ProgramStates.TIMEOUT
 
-    def sleep(self, time: float):
+    def sleep(self, startup_time: float):
         try:
-            self.queue.get(timeout=time)
-            raise AbortedException()
+            with self.lock:
+                if self.state >= ProgramStates.CRASHED:
+                    raise AbortedException()
+
+                state = ProgramStates.WAITING
+                self.observer.on_state_change(state)
+                self.state = state
+
+            self.observer.on_wait(startup_time)
+
+            while True:
+                state = self.queue.get(timeout=startup_time)
+                if state >= ProgramStates.RUNNING:
+                    raise AbortedException()
         except Empty:
             pass
 
@@ -318,39 +338,32 @@ class ProgramState(object):
         with self.lock:
             return self.state in (ProgramStates.RUNNING, ProgramStates.STOPPING)
 
-    def terminate(self, process: Optional[Popen]):
+    def send(self, process: Optional[Popen], the_signal):
         with self.lock:
             if self.state >= ProgramStates.STOPPED:
                 return
             else:
                 pid = process.pid if process else None
                 if pid:
-                    self.observer.on_terminate(pid)
+                    if the_signal == signal.SIGINT:
+                        self.observer.on_interrupt(pid)
+                    else:
+                        self.observer.on_terminate(pid)
+
                     try:
-                        os.kill(pid, signal.SIGTERM)
+                        os.kill(pid, the_signal)
                     except ProcessLookupError:
                         pass
 
             self.state = ProgramStates.STOPPING
 
         self.queue.put(ProgramStates.STOPPING)
+
+    def terminate(self, process: Optional[Popen]):
+        self.send(process, signal.SIGTERM)
 
     def interrupt(self, process: Optional[Popen]):
-        with self.lock:
-            if self.state > ProgramStates.STOPPED:
-                return
-            else:
-                pid = process.pid if process else None
-                if pid:
-                    self.observer.on_interrupt(pid)
-                    try:
-                        os.kill(pid, signal.SIGINT)
-                    except ProcessLookupError:
-                        pass
-
-            self.state = ProgramStates.STOPPING
-
-        self.queue.put(ProgramStates.STOPPING)
+        self.send(process, signal.SIGINT)
 
 
 class ExecutionContext(object):
@@ -421,12 +434,7 @@ class Program(object):
         self.observer: ProgramObserver = self.context.observer
         self.state = ProgramState(self.observer)
 
-        self.command = (
-            shlex.split(self.config.command)
-            if isinstance(self.config.command, str)
-            else self.config.command
-        )
-
+        self.command = self.config.command
         self.process: Optional[Popen] = None
 
     def _run(self):
@@ -438,6 +446,9 @@ class Program(object):
             env = self.context.environment
             rc = 0
 
+            if self.config.startup_delay > 0:
+                self.state.sleep(self.config.startup_delay)
+
             self.observer.on_execution(command, env, self.config)
 
             with Popen(
@@ -448,7 +459,7 @@ class Program(object):
                 user=self.config.user,
                 umask=self.config.umask,
                 shell=self.config.shell,
-                start_new_session=True
+                start_new_session=True,
             ) as process:
                 self.state.set(ProgramStates.RUNNING)
                 self.process = process
@@ -514,6 +525,11 @@ class Program(object):
         thread.start()
 
         self.observer.on_start()
+
+        delay = self.config.startup_delay or 0.0
+        if timeout and delay > timeout / 2.0:
+            return ProgramStates.WAITING
+
         return self.state.wait(min_state, timeout)
 
     def join(

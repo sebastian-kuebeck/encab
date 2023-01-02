@@ -35,11 +35,11 @@ class TestProgramObserver(LoggingProgramObserver):
     def get_executions(self):
         return self._executions
 
-    def get_exits(self, count:int =2):
+    def get_exits(self, count: int = 2):
         # wait for observer to complete...
         while len(self._exits) < count:
             sleep(0.0001)
-            
+
         return self._exits
 
     def add_execution(self, entry: Tuple[str, List[str], Dict[str, str]]):

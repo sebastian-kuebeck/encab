@@ -1,20 +1,15 @@
 import io
 import os
-
-from pwd import getpwnam
-
+import shlex
 import yaml
-from yaml.error import YAMLError
-
-from typing import Dict, Optional, Union, List, Any
-from dataclasses import dataclass, fields
-
-from marshmallow.exceptions import MarshmallowError, ValidationError
-
 import marshmallow_dataclass
 
+from pwd import getpwnam
+from yaml.error import YAMLError
+from typing import Dict, Optional, Union, List, Any
+from dataclasses import dataclass, fields
+from marshmallow.exceptions import MarshmallowError, ValidationError
 from logging import DEBUG, INFO
-
 from abc import ABC
 
 
@@ -71,32 +66,39 @@ class AbstractProgramConfig(AbstractConfig):
     shell: Optional[bool]
     """if true: execute programs in the shell. Default: false"""
 
-    def __post_init__(self):
-        """
-        validates fields and sets default values
+    logFormat: Optional[str]
+    """
+    Custom log format (see `logrecord-attributes-link`_). 
+    The attribute "program" contains the ptogram name. 
+    
+    see: 
+    
+    Default: %(levelname)-5.5s %(program)s: %(message)s 
+    
+    .. _logrecord-attributes-link: https://docs.python.org/3/library/logging.html#logrecord-attributes
+    """
 
-        :raises ConfigError: if fields have invalid values
-        """
+    join_time: Optional[float]
+    """ 
+    The join time is the time in seconds encab waits for a program to start/shutdown before 
+    it continues with the next. Default: 1 seconds
+    """
 
-        self._unsetFields = [
-            f.name for f in fields(self) if getattr(self, f.name) is None
-        ]
-        """name of fields which were not set in this configuration"""
+    def _set_umask(self):
+        umask = self.umask
 
-        self.environment = self.environment or dict()
+        if umask:
+            if isinstance(umask, int):
+                self.umask = int(umask)
+            else:
+                try:
+                    self.umask = int(umask, 8)
+                except ValueError:
+                    raise ConfigError(f"Invalid octal string for umask: {umask}")
+        else:
+            self.umask = -1
 
-        levels = ["CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG"]
-
-        level = self.loglevel
-
-        if level and level not in levels:
-            levels_printed = ", ".join(levels)
-            raise ConfigError(
-                f"Unsupported log level {level}. Supported levels are: {levels_printed}"
-            )
-
-        self.loglevel = DEBUG if self.debug else (level or INFO)
-
+    def _set_user(self):
         user = self.user
 
         if user:
@@ -113,20 +115,39 @@ class AbstractProgramConfig(AbstractConfig):
                     f"Encab has to run as root to run it or programs as different user"
                 )
 
-        umask = self.umask
+    def _set_log_level(self):
+        levels = ["CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG"]
 
-        if umask:
-            if isinstance(umask, int):
-                self.umask = int(umask)
-            else:
-                try:
-                    self.umask = int(umask, 8)
-                except ValueError:
-                    raise ConfigError(f"Invalid octal string for umask: {umask}")
-        else:
-            self.umask = -1
+        level = self.loglevel
+
+        if level and level not in levels:
+            levels_printed = ", ".join(levels)
+            raise ConfigError(
+                f"Unsupported log level {level}. Supported levels are: {levels_printed}"
+            )
+
+        self.loglevel = DEBUG if self.debug else (level or INFO)
+
+    def __post_init__(self):
+        """
+        validates fields and sets default values
+
+        :raises ConfigError: if fields have invalid values
+        """
+
+        self._unsetFields = [
+            f.name for f in fields(self) if getattr(self, f.name) is None
+        ]
+        """name of fields which were not set in this configuration"""
+
+        self.environment = self.environment or dict()
+
+        self._set_log_level()
+        self._set_user()
+        self._set_umask()
 
         self.shell = self.shell or False
+        self.join_time = self.join_time or 1.0
 
     def extend(self, other: "AbstractProgramConfig"):
         """
@@ -177,8 +198,21 @@ class ProgramConfig(AbstractProgramConfig):
             echo "Test"
     """
 
-    depends: Optional[str]
-    """the process sepcific environment"""
+    startup_delay: Optional[float]
+    """The startup delay for this program in seconds. Default: 0 seconds"""
+
+    def __post_init__(self):
+        """
+        validates fields and sets default values
+
+        :raises ConfigError: if fields have invalid values
+        """
+        super().__post_init__()
+
+        command = self.command
+        self.command = shlex.split(command) if isinstance(command, str) else command
+
+        self.startup_delay = self.startup_delay or 0
 
 
 @dataclass
