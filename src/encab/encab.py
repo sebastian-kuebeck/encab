@@ -82,16 +82,13 @@ def set_up_logger(config: Config) -> Logger:
     :rtype: Logger
     """
 
-    level = config.encab.loglevel if config.encab else INFO
+    if config.encab:
+        handler = StreamHandler()
+        formatter = Formatter(config.encab.logformat)
 
-    default_format = "%(levelname)-5.5s %(program)s: %(message)s"
-    debug_format = "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
+        handler.setFormatter(formatter)
+        basicConfig(level=config.encab.loglevel, handlers=[handler])
 
-    handler = StreamHandler()
-    formatter = Formatter(default_format if level == INFO else debug_format)
-
-    handler.setFormatter(formatter)
-    basicConfig(level=level, handlers=[handler])
     return getLogger("encab")
 
 

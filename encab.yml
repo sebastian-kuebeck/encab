@@ -1,9 +1,10 @@
 encab:
     debug: true
     halt_on_exit: False
+    join_time: 2
 programs:
     sleep:
-        startup_delay: 1.0
+        startup_delay: 10
         command: sleep 2
     main:
         umask: "770"

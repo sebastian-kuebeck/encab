@@ -66,18 +66,6 @@ class AbstractProgramConfig(AbstractConfig):
     shell: Optional[bool]
     """if true: execute programs in the shell. Default: false"""
 
-    logFormat: Optional[str]
-    """
-    Custom log format (see `logrecord-attributes-link`_). 
-    The attribute "program" contains the ptogram name. 
-    
-    see: 
-    
-    Default: %(levelname)-5.5s %(program)s: %(message)s 
-    
-    .. _logrecord-attributes-link: https://docs.python.org/3/library/logging.html#logrecord-attributes
-    """
-
     join_time: Optional[float]
     """ 
     The join time is the time in seconds encab waits for a program to start/shutdown before 
@@ -149,6 +137,9 @@ class AbstractProgramConfig(AbstractConfig):
         self.shell = self.shell or False
         self.join_time = self.join_time or 1.0
 
+    def was_unset(self, field_name: str) -> bool:
+        return field_name in self._unsetFields
+
     def extend(self, other: "AbstractProgramConfig"):
         """
         Extends configration with values from a given configuration
@@ -177,11 +168,37 @@ class EncabConfig(AbstractProgramConfig):
     halt_on_exit: Optional[bool]
     """halt on exit: if True, encab is halted after the main program ends. Default: False"""
 
+    logformat: Optional[str]
+    """
+    Custom log format (see `logrecord-attributes-link`_). 
+    The attribute "program" contains the ptogram name. 
+    
+    see: 
+    
+    Default: %(levelname)-5.5s %(program)s: %(message)s 
+    
+    .. _logrecord-attributes-link: https://docs.python.org/3/library/logging.html#logrecord-attributes
+    """
+
+    def _set_log_format(self):
+        default_format = "%(levelname)-5.5s %(program)s: %(message)s"
+        debug_format = "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
+
+        if self.logformat:
+            return
+
+        if self.debug:
+            self.logformat = debug_format
+        else:
+            self.logformat = default_format
+
     def __post_init__(self):
         super().__post_init__()
 
         if self.halt_on_exit is None:
             self.halt_on_exit = False
+
+        self._set_log_format()
 
 
 @dataclass
@@ -229,6 +246,10 @@ class Config(AbstractConfig):
 
     programs: Optional[Dict[str, ProgramConfig]]
     """a dictionary with program names and their program configuration"""
+
+    def __post_init__(self):
+        if not self.encab:
+            self.encab = EncabConfig.create()
 
     @staticmethod
     def load(stream: io.TextIOBase) -> "Config":

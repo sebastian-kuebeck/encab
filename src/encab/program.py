@@ -13,7 +13,7 @@ from subprocess import Popen, PIPE
 from threading import Thread, Lock
 from queue import Queue, Empty
 
-from logging import Logger, DEBUG, INFO, ERROR, getLogger
+from logging import Logger, DEBUG, INFO, ERROR, getLogger, Formatter, StreamHandler
 
 from .config import ProgramConfig
 
@@ -68,7 +68,7 @@ class ProgramObserver(ABC):
         pass
 
     @abstractmethod
-    def on_cancel(self, e: Exception):
+    def on_cancel(self):
         pass
 
     @abstractmethod
@@ -141,8 +141,8 @@ class LoggingProgramObserver(ProgramObserver):
     def on_stopped(self):
         self.logger.info("Program has stopped.", extra=self.extra)
 
-    def on_cancel(self, e: Exception):
-        self.logger.debug("Program start canceled.", extra=self.extra)
+    def on_cancel(self):
+        self.logger.info("Program start canceled.", extra=self.extra)
 
     def on_crash(self, cmd: List[str], e: Exception):
         self.logger.error(
@@ -342,7 +342,9 @@ class ProgramState(object):
         with self.lock:
             if self.state >= ProgramStates.STOPPED:
                 return
-            else:
+            elif self.state == ProgramStates.WAITING:
+                self.queue.put(ProgramStates.STOPPING)
+            elif self.state == ProgramStates.RUNNING:
                 pid = process.pid if process else None
                 if pid:
                     if the_signal == signal.SIGINT:
@@ -481,16 +483,15 @@ class Program(object):
                 else:
                     self.state.set(ProgramStates.STOPPED)
                     self.observer.on_stopped()
+        except AbortedException as e:
+            self.state.set(ProgramStates.CANCELED)
+            self.observer.on_cancel()
         except PermissionError as e:
             self.state.set(ProgramStates.CRASHED)
             self.observer.on_crash(command, e)
         except OSError as e:
             self.state.set(ProgramStates.CRASHED)
             self.observer.on_crash(command, e)
-        except AbortedException as e:
-            self.state.set(ProgramStates.CANCELED)
-            self.observer.on_cancel(e)
-            logger.debug("Program start canceled.", extra=extra)
         except BaseException as e:
             self.state.set(ProgramStates.CRASHED)
             self.observer.on_crash(command, e)
