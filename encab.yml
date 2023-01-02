@@ -1,0 +1,14 @@
+encab:
+    halt_on_exit: True
+    loglevel: INFO
+    environment:
+        X: "1"
+    umask: "770"
+programs:
+    sleep:
+        command: sleep 10
+    main:
+        umask: "770"
+        environment:
+            Y: "2"
+        command: sleep 10

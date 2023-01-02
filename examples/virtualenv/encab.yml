@@ -1,0 +1,10 @@
+encab:
+    debug: true
+programs:
+    sleep:
+        command: sleep 10
+    main:
+        debug: true
+        command: echo "Test"
+        umask: "700"
+        user: runner

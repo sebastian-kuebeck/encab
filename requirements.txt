@@ -1,0 +1,22 @@
+# Runtime
+PyYAML~=6.0 
+types-PyYAML~=6.0.12.2
+marshmallow~=3.19.0
+marshmallow-dataclass[enum,union]~=8.5.10
+marshmallow-enum~=1.5.1
+
+# Build
+build~=0.9.0
+
+# Formatting
+black~=22.10.0
+
+# Validation
+mypy~=0.991
+
+# Documentation
+Sphinx~=5.3.0
+
+# Test
+
+tox~=3.27.1

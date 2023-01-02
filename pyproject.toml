@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=63.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "encab"
+version = "0.0.1"
+authors = [
+  { name="Sebastian M.A. Kuebeck", email="sebastian.kuebeck@example.com" },
+]
+description = "Docker entypoint tool"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "PyYAML ~= 6.0",
+  "types-PyYAML~=6.0.12.2",
+  "marshmallow~=3.19.0",
+  "marshmallow-dataclass[enum,union]~=8.5.10",
+  "marshmallow-enum~=1.5.1"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/skuebeck/encab"
+"Bug Tracker" = "https://github.com/skuebeck/encab"
+
+[project.scripts]
+encab = "encab.encab:encab"

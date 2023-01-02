@@ -1,0 +1,8 @@
+encab:
+  halt_on_exit: True
+  debug: False
+programs:
+  cron:
+    command: cron -f
+  main:
+    command: httpd-foreground
