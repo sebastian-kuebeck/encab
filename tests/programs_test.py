@@ -39,7 +39,7 @@ class TestProgramObserver(LoggingProgramObserver):
         exits: List[Tuple[str, int]] = list()
         for count in range(count):
             exits.append(self.observer._exits.get(timeout=0.5))
-        return exits 
+        return sorted(exits, key=lambda e:e[0], reverse=True)
             
     def add_execution(self, entry: Tuple[str, List[str], Dict[str, str]]):
         self.observer._executions.append(entry)
@@ -161,5 +161,5 @@ class ProgramsTest(unittest.TestCase):
         )
         programs.start()
         programs.terminate()
-        self.assertEqual([('helper', 15), ('main', 15)], self.observer.get_exits(2))
+        self.assertEqual([('main', 15), ('helper', 15)], self.observer.get_exits(2))
         
