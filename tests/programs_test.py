@@ -18,7 +18,7 @@ from encab.config import ProgramConfig, EncabConfig
 from encab.program import LoggingProgramObserver, ProgramObserver, ExecutionContext
 from encab.programs import Programs
 from time import sleep
-
+from queue import Queue
 
 class TestProgramObserver(LoggingProgramObserver):
     def __init__(
@@ -30,23 +30,22 @@ class TestProgramObserver(LoggingProgramObserver):
         self.name = "encab"
 
         self._executions: List[Tuple[str, List[str], Dict[str, str]]] = []
-        self._exits: List[Tuple[str, int]] = []
+        self._exits: Queue = Queue()
 
     def get_executions(self):
         return self._executions
 
-    def get_exits(self, count: int = 2):
-        # wait for observer to complete...
-        while len(self._exits) < count:
-            sleep(0.0001)
-
-        return self._exits
-
+    def get_exits(self, count: int = 2) -> List[Tuple[str, int]]:
+        exits: List[Tuple[str, int]] = list()
+        for count in range(count):
+            exits.append(self.observer._exits.get(timeout=0.5))
+        return exits 
+            
     def add_execution(self, entry: Tuple[str, List[str], Dict[str, str]]):
         self.observer._executions.append(entry)
 
     def add_exit(self, entry: Tuple[str, int]):
-        self.observer._exits.append(entry)
+        self.observer._exits.put(entry)
 
     def spawn(self, logger: Logger, extra: Dict[str, str]) -> ProgramObserver:
         observer = TestProgramObserver(logger, self)
@@ -110,7 +109,7 @@ class ProgramsTest(unittest.TestCase):
             self.observer.get_executions(),
         )
 
-        self.assertEqual([("main", 0), ("helper", 15)], self.observer.get_exits())
+        self.assertEqual([("main", 0), ("helper", 15)], self.observer.get_exits(2))
 
     def test_run_with_crashing_main(self):
         config = {
@@ -129,7 +128,7 @@ class ProgramsTest(unittest.TestCase):
             self.observer.get_executions(),
         )
 
-        self.assertEqual([("main", -1), ("helper", 15)], self.observer.get_exits())
+        self.assertEqual([("main", -1), ("helper", 15)], self.observer.get_exits(2))
 
     def test_run_override_main(self):
         config = {
@@ -149,4 +148,18 @@ class ProgramsTest(unittest.TestCase):
             ],
             self.observer.get_executions(),
         )
-        self.assertEqual([("main", 0), ("helper", 15)], self.observer.get_exits())
+        self.assertEqual([("main", 0), ("helper", 15)], self.observer.get_exits(2))
+        
+    def test_interrupt(self):
+        config = {
+            "helper": ProgramConfig.create(command="sleep 10"),
+            "main": ProgramConfig.create(command='sleep 10'),
+        }
+
+        programs = Programs(
+            config, self.context, [], self.encab_config
+        )
+        programs.start()
+        programs.terminate()
+        self.assertEqual([('helper', 15), ('main', 15)], self.observer.get_exits(2))
+        

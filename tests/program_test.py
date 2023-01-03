@@ -16,7 +16,7 @@ from encab.program import (
     LoggingProgramObserver,
     ExecutionContext,
     Program,
-    ProgramStates,
+    ProgramState,
 )
 
 
@@ -35,7 +35,7 @@ class ProgramTest(unittest.TestCase):
             "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
         )
         handler.setFormatter(formatter)
-        basicConfig(level=DEBUG, handlers=[handler])
+        basicConfig(level=INFO, handlers=[handler])
         ProgramTest.logger = getLogger(__name__)
 
     def setUp(self):
@@ -46,25 +46,55 @@ class ProgramTest(unittest.TestCase):
     def test_start(self):
         config = ProgramConfig.create(command='echo "Test"')
         program = Program("test_start", config, self.context)
-        state = program.start(1)
+        state = program.start()
         self.assertTrue(
-            state in (ProgramStates.RUNNING, ProgramStates.SUCCEEDED), f"state: {state}"
+            state in (ProgramState.RUNNING, ProgramState.SUCCEEDED), f"state: {state}"
         )
         state = program.join(10)
-        self.assertEqual(ProgramStates.SUCCEEDED, state)
-        self.assertTrue(program.has_ended())
-
-    def test_start_fail(self):
+        self.assertEqual(ProgramState.SUCCEEDED, state)
+    
+    def test_crash(self):
         config = ProgramConfig.create(command='excho "Test"')
-        program = Program("test_start_fail", config, self.context)
-        state = program.start(1)
-        self.assertEqual(ProgramStates.CRASHED, state)
-        self.assertTrue(program.has_ended())
+        program = Program("test_crash", config, self.context)
+        state = program.start()
+        self.assertEqual(ProgramState.CRASHED, state)
 
+    def test_join(self):
+        config = ProgramConfig.create(command="echo Test")
+        program = Program("test_join", config, self.context)
+        program.start()
+        state = program.join()
+        self.assertEqual(ProgramState.SUCCEEDED, state)
+ 
+    def test_interrupt(self):
+        config = ProgramConfig.create(command="sleep 10")
+        program = Program("test_interrupt", config, self.context)
+        program.start()
+        program.interrupt()
+        state = program.join()
+        self.assertEqual(ProgramState.STOPPED, state)
+    
     def test_terminate(self):
         config = ProgramConfig.create(command="sleep 10")
         program = Program("test_terminate", config, self.context)
-        program.start(1)
+        program.start()
         program.terminate()
-        program.join()
-        self.assertTrue(program.has_ended())
+        state = program.join()
+        self.assertEqual(ProgramState.STOPPED, state)
+        
+    def test_join_wait(self):
+        config = ProgramConfig.create(command="echo test", startup_delay=0.1)
+        program = Program("test_join_wait", config, self.context)
+        state = program.start()
+        self.assertEqual(ProgramState.WAITING, state)
+        state = program.join_wait()
+        self.assertEqual(ProgramState.SUCCEEDED, state)
+        
+    def test_cancel(self):
+        config = ProgramConfig.create(command="echo test", startup_delay=1)
+        program = Program("test_cancel", config, self.context)
+        state = program.start()
+        self.assertEqual(ProgramState.WAITING, state)
+        state = program.interrupt()
+        state = program.join_wait()
+        self.assertEqual(ProgramState.CANCELED, state)

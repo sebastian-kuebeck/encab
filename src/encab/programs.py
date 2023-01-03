@@ -66,10 +66,16 @@ class Programs(object):
         self.start_helpers()
 
         self.main.start()
-        self.main.join()
+        self.main.join_wait()
 
         self.stop_helpers()
 
+    def start(
+        self,
+    ):
+        self.start_helpers()
+        self.main.start()
+        
     def terminate(self):
         self.main.terminate()
         self.stop_helpers()
