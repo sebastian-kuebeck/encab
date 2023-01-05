@@ -4,6 +4,7 @@ import unittest
 from pprint import pprint
 from encab.config import Config, ProgramConfig, EncabConfig
 from logging import INFO, DEBUG
+from typing import cast
 
 
 class ConfigTest(unittest.TestCase):
@@ -24,12 +25,13 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(1, encab.join_time)
 
         c = Config.create(programs=programs, encab=encab)
+        programs = c.programs or {}
 
-        self.assertEqual(["cron", "-f"], c.programs["cron"].command)
-        self.assertEqual(5.2, c.programs["cron"].startup_delay)
+        self.assertEqual(["cron", "-f"], programs["cron"].command)
+        self.assertEqual(5.2, programs["cron"].startup_delay)
 
-        self.assertEqual(["httpd-foreground"], c.programs["main"].command)
-        self.assertEqual(0.0, c.programs["main"].startup_delay)
+        self.assertEqual(["httpd-foreground"], programs["main"].command)
+        self.assertEqual(0.0, programs["main"].startup_delay)
 
     def test_from_yaml(self):
         file = """
@@ -40,5 +42,6 @@ class ConfigTest(unittest.TestCase):
                     command: httpd-foreground
             """
         c = Config.load(io.StringIO(file))
-        self.assertEqual(["cron", "-f"], c.programs["cron"].command)
-        self.assertEqual(["httpd-foreground"], c.programs["main"].command)
+        programs = c.programs or {}
+        self.assertEqual(["cron", "-f"], programs["cron"].command)
+        self.assertEqual(["httpd-foreground"], programs["main"].command)

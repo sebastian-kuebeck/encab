@@ -30,36 +30,19 @@ from encab.program_state import (
 )
 
 
-class TestProgramObserver(LoggingProgramObserver):
-    def __init__(
-        self, logger: Logger, parent: Optional["TestProgramObserver"] = None
-    ) -> None:
-        self.logger = logger
-        self.parent = parent
-        self.observer = self.parent or self
-        self.name = "test"
-        self.extra = {"program": "test"}
-
-    def spawn(self, logger: Logger, extra: Dict[str, str]) -> ProgramObserver:
-        observer = TestProgramObserver(logger, self)
-        observer.extra = extra
-        observer.name = extra["program"]
-        return observer
-
-
 class TestProgram(object):
     def __init__(
         self,
         name: str,
         command: List[str],
-        observer: ProgramObserver,
-        startup_delay: int = 0,
+        observer: LoggingProgramObserver,
+        startup_delay: float = 0,
     ) -> None:
         self.name = name
         self.startup_delay = startup_delay
         self.command = command
 
-        self._observer = observer
+        self._observer = observer.spawn(name, observer.logger, observer.extra)
         self._state_handler = ProgramStateHandler(observer)
         self._process = None
 
@@ -77,11 +60,8 @@ class TestProgram(object):
             self._observer.on_cancel()
             self._state_handler.set(ProgramState.CANCELED)
         except BaseException as e:
-            self._observer.on_crash(self.command, e)
+            self._observer.on_crash(self.command, e)  # type: ignore
             self._state_handler.set(ProgramState.CRASHED)
-
-    def get_state(self) -> int:
-        return self._state_handler.get()
 
     def start(self, timeout: Optional[float] = 1) -> int:
         thread = Thread(target=lambda: self._run(), name=self.name)
@@ -99,12 +79,12 @@ class TestProgram(object):
         return self._state_handler.join(timeout)
 
     def interrupt(self) -> ProgramState:
-        return self._state_handler.kill(self._process, SIGINT)
+        return self._state_handler.kill(self._process, SIGINT)  # type: ignore
 
-    def terminate(self)  -> ProgramState:
-        return self._state_handler.kill(self._process, SIGTERM)
+    def terminate(self) -> ProgramState:
+        return self._state_handler.kill(self._process, SIGTERM)  # type: ignore
 
-    def join_wait(self, timeout: Optional[float] = None)  -> ProgramState:
+    def join_wait(self, timeout: Optional[float] = None) -> ProgramState:
         return self._state_handler.join_wait(timeout)
 
 
@@ -123,7 +103,9 @@ class ProgramStateTest(unittest.TestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.observer = TestProgramObserver(self.logger)
+        self.observer = LoggingProgramObserver(
+            "encab", self.logger, {"program": "extra"}
+        )
 
     def test_start(self):
         program = TestProgram("test_start", ["echo", "test"], self.observer)

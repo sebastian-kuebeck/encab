@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Encab'
-copyright = '2022, Sebastian M.A. Kuebeck'
+copyright = '2023, Sebastian M.A. Kuebeck'
 author = 'Sebastian M.A. Kuebeck'
 release = '0.0.1'
 

@@ -1,9 +1,11 @@
 TODOS
 =====
 
-- custom log format
+now:
 
-- Plugin Infrastructure
+- Test for log_sanitizer
+
+later:
+
 - Validation plugin
-- Log sanitizing plugin
 - Environment load plugin

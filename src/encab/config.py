@@ -31,7 +31,7 @@ class AbstractConfig(ABC):
         :return: the data class
         :rtype: same as cls
         """
-        config_class = dataclass(cls, kw_only=True)
+        config_class = dataclass(cls, kw_only=True)  # type: ignore
         config_fields = fields(config_class)
         all_args = dict(args)
         for field in config_fields:
@@ -62,9 +62,6 @@ class AbstractProgramConfig(AbstractConfig):
 
     user: Optional[Union[str, int]]
     """the user id or user name"""
-
-    shell: Optional[bool]
-    """if true: execute programs in the shell. Default: false"""
 
     join_time: Optional[float]
     """ 
@@ -134,7 +131,6 @@ class AbstractProgramConfig(AbstractConfig):
         self._set_user()
         self._set_umask()
 
-        self.shell = self.shell or False
         self.join_time = self.join_time or 1.0
 
     def was_unset(self, field_name: str) -> bool:
@@ -209,12 +205,30 @@ class ProgramConfig(AbstractProgramConfig):
     contains all static settings to start a program
     """
 
-    command: Union[str, List[str]]
-    """the command to be execution in POSIX style
-        example:
-            echo "Test"
+    command: Union[str, List[str], None]
+    """the command to be execution as list in POSIX style
+        examples:
+        
+            program:
+                echo "Test"
+       
+            program:     
+                - echo 
+                - Test
     """
 
+    sh: Union[str, List[str], None]
+    """the shell script as string or list
+    
+        examples:
+        
+            program:
+                echo "Test"
+       
+            program:     
+                - echo "Test1" 
+                - echo "Test2"
+    """
     startup_delay: Optional[float]
     """The startup delay for this program in seconds. Default: 0 seconds"""
 
@@ -226,10 +240,46 @@ class ProgramConfig(AbstractProgramConfig):
         """
         super().__post_init__()
 
+        sh = self.sh
         command = self.command
-        self.command = shlex.split(command) if isinstance(command, str) else command
+
+        if sh and command:
+            raise ConfigError(
+                f"Please specify either sh or command attribute for programs"
+            )
+
+        if command:
+            self.command = shlex.split(command) if isinstance(command, str) else command
+
+        if sh:
+            self.sh = sh if isinstance(sh, str) else "; ".join(sh)
 
         self.startup_delay = self.startup_delay or 0
+
+
+@dataclass
+class ExtensionConfig(AbstractConfig):
+    """
+    represents an extension configuration
+    """
+
+    enabled: Optional[bool]
+    """True: The extension is enabled"""
+
+    '''
+    Necessary ?
+    
+    source: Optional[str]
+    """Source path of extension"""
+
+    module: Optional[str]
+    """Module name of extension"""
+    '''
+
+    settings: Optional[Dict[str, Any]]
+
+    def __post_init__(self):
+        self.enabled = True if self.enabled is None else self.enabled
 
 
 @dataclass
@@ -241,8 +291,8 @@ class Config(AbstractConfig):
     encab: Optional[EncabConfig]
     """the basic encab configuraion"""
 
-    plugins: Optional[Dict[str, Any]]
-    """a dictionary with plugin manes and their configuration"""
+    extensions: Optional[Dict[str, ExtensionConfig]]
+    """a dictionary with extension manes and their configuration"""
 
     programs: Optional[Dict[str, ProgramConfig]]
     """a dictionary with program names and their program configuration"""
@@ -264,7 +314,7 @@ class Config(AbstractConfig):
         """
         try:
             ConfigSchema = marshmallow_dataclass.class_schema(Config)
-            return ConfigSchema().load(yaml.safe_load(stream))
+            return ConfigSchema().load(yaml.safe_load(stream))  # type: ignore
         except YAMLError as e:
             raise ConfigError(f"YAML error(s) {str(e)}")
         except ValidationError as e:

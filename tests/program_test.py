@@ -20,11 +20,6 @@ from encab.program import (
 )
 
 
-class TestProgramObserver(LoggingProgramObserver):
-    def __init__(self, logger: Logger) -> None:
-        self.logger = logger
-
-
 class ProgramTest(unittest.TestCase):
     logger: Logger
 
@@ -40,7 +35,8 @@ class ProgramTest(unittest.TestCase):
 
     def setUp(self):
         self.context = ExecutionContext(
-            observer=TestProgramObserver(ProgramTest.logger)
+            {},
+            LoggingProgramObserver("encab", ProgramTest.logger, {"program": "encab"}),
         )
 
     def test_start(self):
@@ -52,7 +48,17 @@ class ProgramTest(unittest.TestCase):
         )
         state = program.join(10)
         self.assertEqual(ProgramState.SUCCEEDED, state)
-    
+
+    def test_start_script(self):
+        config = ProgramConfig.create(sh='echo "Test"')
+        program = Program("test_start", config, self.context)
+        state = program.start()
+        self.assertTrue(
+            state in (ProgramState.RUNNING, ProgramState.SUCCEEDED), f"state: {state}"
+        )
+        state = program.join(10)
+        self.assertEqual(ProgramState.SUCCEEDED, state)
+
     def test_crash(self):
         config = ProgramConfig.create(command='excho "Test"')
         program = Program("test_crash", config, self.context)
@@ -65,7 +71,7 @@ class ProgramTest(unittest.TestCase):
         program.start()
         state = program.join()
         self.assertEqual(ProgramState.SUCCEEDED, state)
- 
+
     def test_interrupt(self):
         config = ProgramConfig.create(command="sleep 10")
         program = Program("test_interrupt", config, self.context)
@@ -73,7 +79,7 @@ class ProgramTest(unittest.TestCase):
         program.interrupt()
         state = program.join()
         self.assertEqual(ProgramState.STOPPED, state)
-    
+
     def test_terminate(self):
         config = ProgramConfig.create(command="sleep 10")
         program = Program("test_terminate", config, self.context)
@@ -81,7 +87,7 @@ class ProgramTest(unittest.TestCase):
         program.terminate()
         state = program.join()
         self.assertEqual(ProgramState.STOPPED, state)
-        
+
     def test_join_wait(self):
         config = ProgramConfig.create(command="echo test", startup_delay=0.1)
         program = Program("test_join_wait", config, self.context)
@@ -89,7 +95,7 @@ class ProgramTest(unittest.TestCase):
         self.assertEqual(ProgramState.WAITING, state)
         state = program.join_wait()
         self.assertEqual(ProgramState.SUCCEEDED, state)
-        
+
     def test_cancel(self):
         config = ProgramConfig.create(command="echo test", startup_delay=1)
         program = Program("test_cancel", config, self.context)

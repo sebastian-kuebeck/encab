@@ -4,6 +4,7 @@ types-PyYAML~=6.0.12.2
 marshmallow~=3.19.0
 marshmallow-dataclass[enum,union]~=8.5.10
 marshmallow-enum~=1.5.1
+pluggy~=1.0.0
 
 # Build
 build~=0.9.0

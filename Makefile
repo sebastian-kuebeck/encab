@@ -14,7 +14,7 @@ validate:
 	mypy --config-file mypy.ini -p encab -p tests
 
 format:
-	black src/encab/*.py tests/*.py
+	black src/encab/*.py src/encab/ext/*.py tests/*.py
 
 tox: 
 	tox

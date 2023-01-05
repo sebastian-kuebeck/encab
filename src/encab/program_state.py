@@ -20,7 +20,13 @@ from .config import ProgramConfig
 
 class ProgramObserver(ABC):
     @abstractmethod
-    def spawn(self, logger: Logger, extra: Dict[str, str]) -> "ProgramObserver":
+    def get_name(self) -> str:
+        pass
+
+    @abstractmethod
+    def spawn(
+        self, name: str, logger: Logger, extra: Dict[str, str]
+    ) -> "ProgramObserver":
         pass
 
     @abstractmethod
@@ -72,20 +78,23 @@ class ProgramObserver(ABC):
         pass
 
     @abstractmethod
-    def on_crash(self, cmd: List[str], e: Exception):
+    def on_crash(self, cmd: List[str], e: BaseException):
         pass
 
 
 class LoggingProgramObserver(ProgramObserver):
-    def __init__(self) -> None:
-        self.logger = getLogger(__name__)
-        self.extra = {"program": "encab"}
+    def __init__(self, name: str, logger: Logger, extra: Dict[str, str]) -> None:
+        self.name = name
+        self.logger = logger
+        self.extra = extra
 
-    def spawn(self, logger: Logger, extra: Dict[str, str]) -> ProgramObserver:
-        observer = LoggingProgramObserver()
-        observer.logger = logger
-        observer.extra = deepcopy(extra)
-        return observer
+    def get_name(self) -> str:
+        return self.name
+
+    def spawn(
+        self, name: str, logger: Logger, extra: Dict[str, str]
+    ) -> ProgramObserver:
+        return LoggingProgramObserver(name, logger, deepcopy(extra))
 
     def on_state_change(self, state: int):
         self.logger.debug("Changing state to %s", state, extra=self.extra)
@@ -144,7 +153,7 @@ class LoggingProgramObserver(ProgramObserver):
     def on_cancel(self):
         self.logger.info("Program start canceled.", extra=self.extra)
 
-    def on_crash(self, cmd: List[str], e: Exception):
+    def on_crash(self, cmd: List[str], e: BaseException):
         self.logger.error(
             "Failed to execute command %s: %s", str(e), str(cmd), extra=self.extra
         )
@@ -179,7 +188,7 @@ class ProgramState(IntEnum):
     +------------+-------+----------------------------------------+
     | STOPPING   | 5     | The Process was terminated by encab    |
     +------------+-------+----------------------------------------+
-    | CANCELED   | 6     | Process start was canceled             |
+    | CANCELED   | 6     | Process start is being canceled        |
     +------------+-------+----------------------------------------+
     | CRASHED    | 6     | Process crashed during start           |
     +------------+-------+----------------------------------------+

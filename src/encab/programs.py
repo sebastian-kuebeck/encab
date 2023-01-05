@@ -75,7 +75,7 @@ class Programs(object):
     ):
         self.start_helpers()
         self.main.start()
-        
+
     def terminate(self):
         self.main.terminate()
         self.stop_helpers()

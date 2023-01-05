@@ -20,17 +20,26 @@ from encab.programs import Programs
 from time import sleep
 from queue import Queue
 
+
 class TestProgramObserver(LoggingProgramObserver):
     def __init__(
-        self, logger: Logger, parent: Optional["TestProgramObserver"] = None
+        self,
+        name: str,
+        logger: Logger,
+        extra: Dict[str, str],
+        parent: Optional["TestProgramObserver"] = None,
     ) -> None:
-        self.logger = logger
+        super().__init__(name, logger, extra)
         self.parent = parent
         self.observer = self.parent or self
-        self.name = "encab"
 
         self._executions: List[Tuple[str, List[str], Dict[str, str]]] = []
         self._exits: Queue = Queue()
+
+    def spawn(
+        self, name: str, logger: Logger, extra: Dict[str, str]
+    ) -> ProgramObserver:
+        return TestProgramObserver(name, logger, extra, self)
 
     def get_executions(self):
         return self._executions
@@ -39,19 +48,13 @@ class TestProgramObserver(LoggingProgramObserver):
         exits: List[Tuple[str, int]] = list()
         for count in range(count):
             exits.append(self.observer._exits.get(timeout=0.5))
-        return sorted(exits, key=lambda e:e[0], reverse=True)
-            
+        return sorted(exits, key=lambda e: e[0], reverse=True)
+
     def add_execution(self, entry: Tuple[str, List[str], Dict[str, str]]):
         self.observer._executions.append(entry)
 
     def add_exit(self, entry: Tuple[str, int]):
         self.observer._exits.put(entry)
-
-    def spawn(self, logger: Logger, extra: Dict[str, str]) -> ProgramObserver:
-        observer = TestProgramObserver(logger, self)
-        observer.extra = extra
-        observer.name = extra["program"]
-        return observer
 
     def on_execution(self, cmd: List[str], env: Dict[str, str], config: ProgramConfig):
         super().on_execution(cmd, env, config)
@@ -65,7 +68,7 @@ class TestProgramObserver(LoggingProgramObserver):
         super().on_stopped()
         self.add_exit((self.name, 15))
 
-    def on_crash(self, cmd: List[str], e: Exception):
+    def on_crash(self, cmd: List[str], e: BaseException):
         super().on_crash(cmd, e)
         self.add_exit((self.name, -1))
 
@@ -85,7 +88,9 @@ class ProgramsTest(unittest.TestCase):
         ProgramsTest.logger = getLogger(__name__)
 
     def setUp(self):
-        self.observer = TestProgramObserver(ProgramsTest.logger)
+        self.observer = TestProgramObserver(
+            "encab", ProgramsTest.logger, {"program": "encab"}
+        )
         self.context = ExecutionContext({"X": "1"}, observer=self.observer)
         self.encab_config = EncabConfig.create(debug=False)
 
@@ -133,7 +138,7 @@ class ProgramsTest(unittest.TestCase):
     def test_run_override_main(self):
         config = {
             "helper": ProgramConfig.create(command="sleep 10"),
-            "main": ProgramConfig.create(command='echo "Main"', shell=True),
+            "main": ProgramConfig.create(sh='echo "Main"'),
         }
 
         programs = Programs(
@@ -149,17 +154,14 @@ class ProgramsTest(unittest.TestCase):
             self.observer.get_executions(),
         )
         self.assertEqual([("main", 0), ("helper", 15)], self.observer.get_exits(2))
-        
+
     def test_interrupt(self):
         config = {
             "helper": ProgramConfig.create(command="sleep 10"),
-            "main": ProgramConfig.create(command='sleep 10'),
+            "main": ProgramConfig.create(command="sleep 10"),
         }
 
-        programs = Programs(
-            config, self.context, [], self.encab_config
-        )
+        programs = Programs(config, self.context, [], self.encab_config)
         programs.start()
         programs.terminate()
-        self.assertEqual([('main', 15), ('helper', 15)], self.observer.get_exits(2))
-        
+        self.assertEqual([("main", 15), ("helper", 15)], self.observer.get_exits(2))

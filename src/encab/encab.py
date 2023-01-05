@@ -13,13 +13,16 @@ from logging import (
 )
 
 from signal import SIGTERM, SIGINT, signal, getsignal
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, cast
 from textwrap import shorten
 from threading import Event
 
 from .config import Config, ConfigError
 from .program import LoggingProgramObserver, ExecutionContext
 from .programs import Programs
+from .extensions import extensions, ENCAB
+
+from .ext.log_sanitizer import LogSanititerExtension
 
 
 def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, str]:
@@ -46,14 +49,14 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
             encab_file = os.environ[ENCAB_CONFIG]
             source = f"Environment {ENCAB_CONFIG}"
 
-    if not encab_file:
-        ENCAB_FILE_CANDIDATES = [
-            "./encab.yml",
-            "./encab.yaml",
-            "/etc/encab.yml",
-            "/etc/encab.yaml",
-        ]
+    ENCAB_FILE_CANDIDATES = [
+        "./encab.yml",
+        "./encab.yaml",
+        "/etc/encab.yml",
+        "/etc/encab.yaml",
+    ]
 
+    if not encab_file:
         for candidate in ENCAB_FILE_CANDIDATES:
             if os.path.exists(candidate):
                 encab_file = candidate
@@ -89,7 +92,9 @@ def set_up_logger(config: Config) -> Logger:
         handler.setFormatter(formatter)
         basicConfig(level=config.encab.loglevel, handlers=[handler])
 
-    return getLogger("encab")
+    logger = getLogger(ENCAB)
+    extensions.update_logger(ENCAB, logger)
+    return logger
 
 
 def encab(
@@ -108,9 +113,18 @@ def encab(
     :type args: Optional[List[str]], optional
     """
 
+    extensions.register([LogSanititerExtension()])
+
     logger = None
     try:
         config, location = load_config(encab_stream)
+
+        if config.extensions:
+            for name, econf in config.extensions.items():
+                extensions.configure_extension(
+                    name, cast(bool, econf.enabled), econf.settings or {}
+                )
+
         logger = set_up_logger(config)
 
         if config.encab:
@@ -120,7 +134,7 @@ def encab(
             if config.encab.umask and config.encab.umask != -1:
                 os.umask(int(config.encab.umask))
 
-        extra = {"program": "encab"}
+        extra = {"program": ENCAB}
 
         logger.info("encab 0.0.1", extra=extra)
         logger.info("Using configuration %s", location, extra=extra)
@@ -136,7 +150,8 @@ def encab(
         if program_config:
             logger.debug("Starting program(s)...", extra=extra)
 
-        context = ExecutionContext(dict(os.environ))
+        observer = LoggingProgramObserver(ENCAB, logger, extra)
+        context = ExecutionContext(dict(os.environ), observer)
 
         if config.encab and config.encab.environment:
             context = context.extend(config.encab.environment)
@@ -181,7 +196,7 @@ def encab(
     except FileNotFoundError as e:
         print(f"I/O Error: {str(e)}")
         exit(1)
-    except ConfigError as e:
+    except ValueError as e:
         print(f"Error in configuration: {str(e)}")
         exit(2)
     except PermissionError as e:

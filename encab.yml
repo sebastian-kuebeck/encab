@@ -1,13 +1,21 @@
 encab:
-    debug: true
+    debug: false
     halt_on_exit: False
-    join_time: 2
+    environment:
+        secret_a: "1111"
+extensions:
+    log_sanitizer:
+        enabled: true
+        settings:
+            override: false
+            patterns: 
+                - "*MAGIC*"
 programs:
     sleep:
-        startup_delay: 10
-        command: sleep 2
+        command: sleep 10
     main:
-        umask: "770"
         environment:
-            Y: "2"
-        command: sleep 5
+            secret_b: "9999"
+        sh: 
+            - echo $secret_a
+            - echo $secret_b
