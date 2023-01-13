@@ -15,10 +15,10 @@ from abc import ABC
 ENCAB = "encab"
 LOG_SANITIZER = "log_sanitizer"
 
+mylogger = getLogger(LOG_SANITIZER)
 
 class ConfigError(ValueError):
     pass
-
 
 @dataclass
 class LogSanitizerConfig(object):
@@ -78,7 +78,6 @@ class SanitizingFilter(Filter):
 
 extension_impl = HookimplMarker(ENCAB)
 
-
 class LogSanititerExtension(object):
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD", "*PWD*"]
 
@@ -97,7 +96,7 @@ class LogSanititerExtension(object):
             return
 
         self.config = LogSanitizerConfig.load(config)
-
+        
         if not self.config.override:
             patterns = cast(List[str], self.config.patterns)
             self.config.patterns = [*patterns, *self.PATTERNS]
@@ -123,13 +122,13 @@ class LogSanititerExtension(object):
         if program_name == ENCAB:
             if self.enabled:
                 patterns = str(self.config.patterns)
-                logger.info(
-                    "log_sanitizer patterns: %s",
+                mylogger.debug(
+                    "patterns: %s",
                     patterns,
                     extra={"program": program_name},
                 )
             else:
-                logger.info(
+                mylogger.info(
                     "log_sanitizer is disabled", extra={"program": program_name}
                 )
 

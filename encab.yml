@@ -1,5 +1,5 @@
 encab:
-    debug: false
+    debug: true
     halt_on_exit: False
     environment:
         secret_a: "1111"

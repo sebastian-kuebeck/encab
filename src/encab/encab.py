@@ -13,7 +13,7 @@ from logging import (
 )
 
 from signal import SIGTERM, SIGINT, signal, getsignal
-from typing import Optional, List, Tuple, cast
+from typing import Optional, List, Tuple, cast, Union
 from textwrap import shorten
 from threading import Event
 
@@ -86,11 +86,14 @@ def set_up_logger(config: Config) -> Logger:
     """
 
     if config.encab:
+        root_logger = getLogger()
+
         handler = StreamHandler()
         formatter = Formatter(config.encab.logformat)
 
         handler.setFormatter(formatter)
-        basicConfig(level=config.encab.loglevel, handlers=[handler])
+        root_logger.setLevel(cast(Union[int, str], config.encab.loglevel))
+        root_logger.addHandler(handler)
 
     logger = getLogger(ENCAB)
     extensions.update_logger(ENCAB, logger)
@@ -119,13 +122,13 @@ def encab(
     try:
         config, location = load_config(encab_stream)
 
+        logger = set_up_logger(config)
+        
         if config.extensions:
             for name, econf in config.extensions.items():
                 extensions.configure_extension(
                     name, cast(bool, econf.enabled), econf.settings or {}
                 )
-
-        logger = set_up_logger(config)
 
         if config.encab:
             if config.encab.user:

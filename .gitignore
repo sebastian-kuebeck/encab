@@ -12,6 +12,7 @@
 .env
 .eggs/
 .pytest_cache/
+__pycache__
 .tox/
 .cache/
 .mypy_cache
