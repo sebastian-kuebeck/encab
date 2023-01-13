@@ -83,7 +83,7 @@ class AbstractProgramConfig(AbstractConfig):
         else:
             self.umask = -1
 
-    def _set_user(self):
+    def set_user(self):
         user = self.user
 
         if user:
@@ -128,7 +128,6 @@ class AbstractProgramConfig(AbstractConfig):
         self.environment = self.environment or dict()
 
         self._set_log_level()
-        self._set_user()
         self._set_umask()
 
         self.join_time = self.join_time or 1.0
@@ -176,6 +175,9 @@ class EncabConfig(AbstractProgramConfig):
     .. _logrecord-attributes-link: https://docs.python.org/3/library/logging.html#logrecord-attributes
     """
 
+    dry_run: Optional[bool]
+    """True: the configuration is checked but no program is started. Default: False"""
+
     def _set_log_format(self):
         default_format = "%(levelname)-5.5s %(program)s: %(message)s"
         debug_format = "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
@@ -190,6 +192,8 @@ class EncabConfig(AbstractProgramConfig):
 
     def __post_init__(self):
         super().__post_init__()
+        
+        self.dry_run = None if self.dry_run is None else self.dry_run
 
         if self.halt_on_exit is None:
             self.halt_on_exit = False
@@ -209,9 +213,13 @@ class ProgramConfig(AbstractProgramConfig):
     """the command to be execution as list in POSIX style
         examples:
         
+        .. code-block:: yaml
+        
             program:
                 echo "Test"
        
+        .. code-block:: yaml
+        
             program:     
                 - echo 
                 - Test
@@ -222,12 +230,16 @@ class ProgramConfig(AbstractProgramConfig):
     
         examples:
         
-            program:
-                echo "Test"
+            .. code-block:: yaml
+        
+                program:
+                    echo "Test"
+                    
+            .. code-block:: yaml
        
-            program:     
-                - echo "Test1" 
-                - echo "Test2"
+                program:     
+                    - echo "Test1" 
+                    - echo "Test2"
     """
     startup_delay: Optional[float]
     """The startup delay for this program in seconds. Default: 0 seconds"""

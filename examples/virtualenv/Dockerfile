@@ -16,4 +16,6 @@ RUN adduser runner --gecos "" --disabled-login
 
 ADD encab.yml .
 
+ENV ENCAB_DRY_RUN="0"
+
 ENTRYPOINT ["encab"]

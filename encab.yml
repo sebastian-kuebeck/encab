@@ -1,4 +1,5 @@
 encab:
+    dry_run: True
     debug: true
     halt_on_exit: False
     environment:

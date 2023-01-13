@@ -4,9 +4,9 @@ from typing import Set, Dict, Any, Optional, List
 from logging import LogRecord, INFO
 
 from encab.ext.log_sanitizer import (
-    LogSanitizerConfig,
+    LogSanitizerSettings,
     SanitizingFilter,
-    LogSanititerExtension,
+    LogSanitizerExtension,
     LOG_SANITIZER,
 )
 
@@ -15,13 +15,13 @@ class LogSanititerTest(unittest.TestCase):
     def setUp(self) -> None:
         return super().setUp()
 
-    def test_config(self):
-        config = LogSanitizerConfig.load({"patterns": ["x*"], "override": True})
-        self.assertEqual(["x*"], config.patterns)
-        self.assertTrue(config.override)
+    def test_settings(self):
+        settings = LogSanitizerSettings.load({"patterns": ["x*"], "override": True})
+        self.assertEqual(["x*"], settings.patterns)
+        self.assertTrue(settings.override)
 
     def test_config_defaults(self):
-        config = LogSanitizerConfig.load({})
+        config = LogSanitizerSettings.load({})
         self.assertEqual([], config.patterns)
         self.assertFalse(config.override)
 
@@ -42,7 +42,7 @@ class LogSanititerTest(unittest.TestCase):
 
     def is_sensitive(self, name: str, patterns: Optional[List[str]] = None) -> bool:
         config = {"patterns": patterns} if patterns else {}
-        ext = LogSanititerExtension()
+        ext = LogSanitizerExtension()
         ext.configure_extension(LOG_SANITIZER, True, config)
         return ext.is_sensitive(name)
 
@@ -61,7 +61,7 @@ class LogSanititerTest(unittest.TestCase):
         self.assertFalse(self.is_sensitive("XCODE", patterns))
 
     def extend_environment(self, env: Dict[str, str]) -> Set[str]:
-        ext = LogSanititerExtension()
+        ext = LogSanitizerExtension()
         ext.extend_environment("", env)
         return ext.sensitive_strings
 

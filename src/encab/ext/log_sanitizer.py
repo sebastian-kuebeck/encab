@@ -21,7 +21,28 @@ class ConfigError(ValueError):
     pass
 
 @dataclass
-class LogSanitizerConfig(object):
+class LogSanitizerSettings(object):
+    """
+    the log sanitizer settings
+    
+    eample:
+    
+    .. code-block:: yaml
+    
+        encab:
+            debug: true
+            halt_on_exit: False
+        extensions:
+            log_sanitizer:
+                enabled: true
+                settings:
+                    override: false
+                    patterns: 
+                        - "*MAGIC*"
+    
+    This class contains the extensions/log_sanitizer/settings content.
+    """
+    
     patterns: Optional[List[str]]
     """set sensitive environmen variable name patterns whose values will be masked.
        UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)       
@@ -40,9 +61,9 @@ class LogSanitizerConfig(object):
         self.override = False if self.override is None else self.override
 
     @staticmethod
-    def load(settings: Dict[str, Any]) -> "LogSanitizerConfig":
+    def load(settings: Dict[str, Any]) -> "LogSanitizerSettings":
         try:
-            ConfigSchema = marshmallow_dataclass.class_schema(LogSanitizerConfig)
+            ConfigSchema = marshmallow_dataclass.class_schema(LogSanitizerSettings)
             return ConfigSchema().load(settings)  # type: ignore
         except ValidationError as e:
             msg = e.args[0]
@@ -78,16 +99,22 @@ class SanitizingFilter(Filter):
 
 extension_impl = HookimplMarker(ENCAB)
 
-class LogSanititerExtension(object):
+class LogSanitizerExtension(object):
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD", "*PWD*"]
 
     def __init__(self) -> None:
         self.sensitive_strings: Set[str] = set()
-        self.config = LogSanitizerConfig(patterns=self.PATTERNS, override=False)
+        self.settings = LogSanitizerSettings(patterns=self.PATTERNS, override=False)
         self.enabled = True
 
     @extension_impl
-    def configure_extension(self, name: str, enabled: bool, config: Dict[str, Any]):
+    def validate_extension(self, name: str, enabled: bool, settings: Dict[str, Any]):
+        if name == LOG_SANITIZER:
+            LogSanitizerSettings.load(settings)
+            mylogger.info("settings are valid.", extra={"program": ENCAB})
+                
+    @extension_impl
+    def configure_extension(self, name: str, enabled: bool, settings: Dict[str, Any]):
         if name != LOG_SANITIZER:
             return
 
@@ -95,14 +122,14 @@ class LogSanititerExtension(object):
             self.enabled = False
             return
 
-        self.config = LogSanitizerConfig.load(config)
+        self.settings = LogSanitizerSettings.load(settings)
         
-        if not self.config.override:
-            patterns = cast(List[str], self.config.patterns)
-            self.config.patterns = [*patterns, *self.PATTERNS]
+        if not self.settings.override:
+            patterns = cast(List[str], self.settings.patterns)
+            self.settings.patterns = [*patterns, *self.PATTERNS]
 
     def is_sensitive(self, name: str) -> bool:
-        patterns = cast(List[str], self.config.patterns)
+        patterns = cast(List[str], self.settings.patterns)
         for pattern in patterns:
             if fnmatch(name.upper(), pattern.upper()):
                 return True
@@ -121,7 +148,7 @@ class LogSanititerExtension(object):
     def update_logger(self, program_name: str, logger: Logger):
         if program_name == ENCAB:
             if self.enabled:
-                patterns = str(self.config.patterns)
+                patterns = str(self.settings.patterns)
                 mylogger.debug(
                     "patterns: %s",
                     patterns,

@@ -22,7 +22,7 @@ from .program import LoggingProgramObserver, ExecutionContext
 from .programs import Programs
 from .extensions import extensions, ENCAB
 
-from .ext.log_sanitizer import LogSanititerExtension
+from .ext.log_sanitizer import LogSanitizerExtension
 
 
 def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, str]:
@@ -43,8 +43,9 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
 
     source = "Argument"
 
+    ENCAB_CONFIG = "ENCAB_CONFIG"
+        
     if not encab_file:
-        ENCAB_CONFIG = "ENCAB_CONFIG"
         if ENCAB_CONFIG in os.environ:
             encab_file = os.environ[ENCAB_CONFIG]
             source = f"Environment {ENCAB_CONFIG}"
@@ -71,6 +72,27 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
     else:
         with open(encab_file) as f:
             config = Config.load(f)
+    
+
+    ENCAB_DRY_RUN = "ENCAB_DRY_RUN"
+
+    dry_run = None    
+    if ENCAB_DRY_RUN in os.environ:
+        value = os.environ[ENCAB_DRY_RUN]
+        if not value:
+            pass
+        elif value == '1':
+            dry_run = True
+        elif value == '0':
+            dry_run = False
+        else:
+            raise ConfigError(
+                "Environment variable ENCAB_DRY_RUN"
+                " expected to be '1' or '0' if set"
+                f" but was '{value}'.")    
+        
+    if config.encab and dry_run is not None:        
+        config.encab.dry_run = dry_run
 
     return (config, f"file {encab_file}, source: {source}.")
 
@@ -116,7 +138,7 @@ def encab(
     :type args: Optional[List[str]], optional
     """
 
-    extensions.register([LogSanititerExtension()])
+    extensions.register([LogSanitizerExtension()])
 
     logger = None
     try:
@@ -124,19 +146,6 @@ def encab(
 
         logger = set_up_logger(config)
         
-        if config.extensions:
-            for name, econf in config.extensions.items():
-                extensions.configure_extension(
-                    name, cast(bool, econf.enabled), econf.settings or {}
-                )
-
-        if config.encab:
-            if config.encab.user:
-                os.setuid(int(config.encab.user))
-
-            if config.encab.umask and config.encab.umask != -1:
-                os.umask(int(config.encab.umask))
-
         extra = {"program": ENCAB}
 
         logger.info("encab 0.0.1", extra=extra)
@@ -147,6 +156,31 @@ def encab(
             shorten(str(config), width=127, placeholder="..."),
             extra=extra,
         )
+
+        if config.encab and cast(bool, config.encab.dry_run):
+            logger.info("Dry run. No program will be started.", extra=extra)
+            if config.extensions:
+                for name, econf in config.extensions.items():
+                    extensions.validate_extension(
+                        name, cast(bool, econf.enabled), econf.settings or {}
+                    )
+            logger.info("Dry run succeeded. Exiting.", extra=extra)
+            return
+        
+        if config.extensions:
+            for name, econf in config.extensions.items():
+                extensions.configure_extension(
+                    name, cast(bool, econf.enabled), econf.settings or {}
+                )
+
+        if config.encab:
+            config.encab.set_user()
+            
+            if config.encab.user:
+                os.setuid(int(config.encab.user))
+
+            if config.encab.umask and config.encab.umask != -1:
+                os.umask(int(config.encab.umask))
 
         program_config = config.programs or {}
 
@@ -210,7 +244,7 @@ def encab(
         exit(3)
     except KeyboardInterrupt as e:
         print(f"Encab was interrupted.")
-        exit(0)
+        return
 
 
 if __name__ == "__main__":

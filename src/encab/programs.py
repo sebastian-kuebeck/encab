@@ -25,6 +25,7 @@ class Programs(object):
         for name, program_config in program_configs.items():
             if encab_config:
                 program_config.extend(encab_config)
+                program_config.set_user()
 
             if name == "main":
                 if args:
