@@ -16,5 +16,16 @@ validate:
 format:
 	black src/encab/*.py src/encab/ext/*.py tests/*.py tests/ext/*.py
 
+apidoc:
+	rm -f docs/encab.rst docs/encab.ext.rst docs/modules.rst
+	sphinx-apidoc -o docs src/
+	rm -f docs/modules.rst
+
+html:
+	cd docs && make clean html && make html
+
+browse:
+	firefox docs/_build/html/index.html
+
 tox: 
 	tox

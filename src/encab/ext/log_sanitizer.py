@@ -17,18 +17,20 @@ LOG_SANITIZER = "log_sanitizer"
 
 mylogger = getLogger(LOG_SANITIZER)
 
+
 class ConfigError(ValueError):
     pass
+
 
 @dataclass
 class LogSanitizerSettings(object):
     """
     the log sanitizer settings
-    
+
     eample:
-    
+
     .. code-block:: yaml
-    
+
         encab:
             debug: true
             halt_on_exit: False
@@ -37,23 +39,23 @@ class LogSanitizerSettings(object):
                 enabled: true
                 settings:
                     override: false
-                    patterns: 
+                    patterns:
                         - "*MAGIC*"
-    
+
     This class contains the extensions/log_sanitizer/settings content.
     """
-    
+
     patterns: Optional[List[str]]
     """set sensitive environmen variable name patterns whose values will be masked.
        UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)       
     
        example:
        
-       - *MAGIC*    # all variable names containing the string MAGIC 
+        ``*MAGIC*`` -- all variable names containing the string MAGIC 
     """
 
     override: Optional[bool]
-    """if true, builtin patterns are overriden """
+    """if True, builtin patterns are overriden """
 
     def __post_init__(self):
         self.patterns = self.patterns or list()
@@ -99,6 +101,7 @@ class SanitizingFilter(Filter):
 
 extension_impl = HookimplMarker(ENCAB)
 
+
 class LogSanitizerExtension(object):
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD", "*PWD*"]
 
@@ -112,7 +115,7 @@ class LogSanitizerExtension(object):
         if name == LOG_SANITIZER:
             LogSanitizerSettings.load(settings)
             mylogger.info("settings are valid.", extra={"program": ENCAB})
-                
+
     @extension_impl
     def configure_extension(self, name: str, enabled: bool, settings: Dict[str, Any]):
         if name != LOG_SANITIZER:
@@ -123,7 +126,7 @@ class LogSanitizerExtension(object):
             return
 
         self.settings = LogSanitizerSettings.load(settings)
-        
+
         if not self.settings.override:
             patterns = cast(List[str], self.settings.patterns)
             self.settings.patterns = [*patterns, *self.PATTERNS]

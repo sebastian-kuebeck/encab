@@ -44,7 +44,7 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
     source = "Argument"
 
     ENCAB_CONFIG = "ENCAB_CONFIG"
-        
+
     if not encab_file:
         if ENCAB_CONFIG in os.environ:
             encab_file = os.environ[ENCAB_CONFIG]
@@ -72,26 +72,26 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
     else:
         with open(encab_file) as f:
             config = Config.load(f)
-    
 
     ENCAB_DRY_RUN = "ENCAB_DRY_RUN"
 
-    dry_run = None    
+    dry_run = None
     if ENCAB_DRY_RUN in os.environ:
         value = os.environ[ENCAB_DRY_RUN]
         if not value:
             pass
-        elif value == '1':
+        elif value == "1":
             dry_run = True
-        elif value == '0':
+        elif value == "0":
             dry_run = False
         else:
             raise ConfigError(
                 "Environment variable ENCAB_DRY_RUN"
                 " expected to be '1' or '0' if set"
-                f" but was '{value}'.")    
-        
-    if config.encab and dry_run is not None:        
+                f" but was '{value}'."
+            )
+
+    if config.encab and dry_run is not None:
         config.encab.dry_run = dry_run
 
     return (config, f"file {encab_file}, source: {source}.")
@@ -145,7 +145,7 @@ def encab(
         config, location = load_config(encab_stream)
 
         logger = set_up_logger(config)
-        
+
         extra = {"program": ENCAB}
 
         logger.info("encab 0.0.1", extra=extra)
@@ -166,7 +166,7 @@ def encab(
                     )
             logger.info("Dry run succeeded. Exiting.", extra=extra)
             return
-        
+
         if config.extensions:
             for name, econf in config.extensions.items():
                 extensions.configure_extension(
@@ -175,7 +175,7 @@ def encab(
 
         if config.encab:
             config.encab.set_user()
-            
+
             if config.encab.user:
                 os.setuid(int(config.encab.user))
 

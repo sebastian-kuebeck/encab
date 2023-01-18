@@ -14,6 +14,10 @@ from abc import ABC
 
 
 class ConfigError(ValueError):
+    """
+    Configuration error
+    """
+
     pass
 
 
@@ -84,6 +88,16 @@ class AbstractProgramConfig(AbstractConfig):
             self.umask = -1
 
     def set_user(self):
+        """
+        sets the user that runs the program
+
+        steps:
+        - checks wether a user is set.
+        - determines the UID if the user is given as name.
+        - checks if encab is run as root if a program is set to run with a different user.
+
+        :raises ConfigError: if the user is unknown or encab is not run as root when needed
+        """
         user = self.user
 
         if user:
@@ -133,6 +147,14 @@ class AbstractProgramConfig(AbstractConfig):
         self.join_time = self.join_time or 1.0
 
     def was_unset(self, field_name: str) -> bool:
+        """
+        returns true if a field was initially unset
+
+        :param field_name: the field name
+        :type field_name: str
+        :return: True: the field was initially unset, False: the field was set
+        :rtype: bool
+        """
         return field_name in self._unsetFields
 
     def extend(self, other: "AbstractProgramConfig"):
@@ -165,14 +187,14 @@ class EncabConfig(AbstractProgramConfig):
 
     logformat: Optional[str]
     """
-    Custom log format (see `logrecord-attributes-link`_). 
+    Custom log format (see logrecord-attributes_). 
     The attribute "program" contains the ptogram name. 
     
-    see: 
+    .. _logrecord-attributes: https://docs.python.org/3/library/logging.html#logrecord-attributes
     
-    Default: %(levelname)-5.5s %(program)s: %(message)s 
+    Default: ``%(levelname)-5.5s %(program)s: %(message)s``
     
-    .. _logrecord-attributes-link: https://docs.python.org/3/library/logging.html#logrecord-attributes
+    
     """
 
     dry_run: Optional[bool]
@@ -192,7 +214,7 @@ class EncabConfig(AbstractProgramConfig):
 
     def __post_init__(self):
         super().__post_init__()
-        
+
         self.dry_run = None if self.dry_run is None else self.dry_run
 
         if self.halt_on_exit is None:
@@ -216,13 +238,15 @@ class ProgramConfig(AbstractProgramConfig):
         .. code-block:: yaml
         
             program:
-                echo "Test"
+                command:
+                    echo "Test"
        
         .. code-block:: yaml
         
-            program:     
-                - echo 
-                - Test
+            program:
+                comand:     
+                    - echo 
+                    - Test
     """
 
     sh: Union[str, List[str], None]
@@ -233,13 +257,15 @@ class ProgramConfig(AbstractProgramConfig):
             .. code-block:: yaml
         
                 program:
-                    echo "Test"
+                    sh:
+                        echo "Test"
                     
             .. code-block:: yaml
        
-                program:     
-                    - echo "Test1" 
-                    - echo "Test2"
+                program:
+                    sh:     
+                        - echo "Test1" 
+                        - echo "Test2"
     """
     startup_delay: Optional[float]
     """The startup delay for this program in seconds. Default: 0 seconds"""
