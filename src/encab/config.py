@@ -83,7 +83,9 @@ class AbstractProgramConfig(AbstractConfig):
                 try:
                     self.umask = int(umask, 8)
                 except ValueError:
-                    raise ConfigError(f"Invalid octal string for umask: {umask}")
+                    raise ConfigError(
+                        f"Expected octal string for umask but got: {umask}"
+                    )
         else:
             self.umask = -1
 

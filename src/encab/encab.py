@@ -23,6 +23,8 @@ from .programs import Programs
 from .extensions import extensions, ENCAB
 
 from .ext.log_sanitizer import LogSanitizerExtension
+from .ext.validation import ValidationExtension
+from .ext.startup_script import StarupScriptExtension
 
 
 def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, str]:
@@ -138,7 +140,9 @@ def encab(
     :type args: Optional[List[str]], optional
     """
 
-    extensions.register([LogSanitizerExtension()])
+    extensions.register(
+        [StarupScriptExtension(), LogSanitizerExtension(), ValidationExtension()]
+    )
 
     logger = None
     try:
@@ -230,18 +234,18 @@ def encab(
             Event().wait()
         else:
             logger.debug("Programs ended. Exiting.", extra=extra)
-    except FileNotFoundError as e:
-        print(f"I/O Error: {str(e)}")
-        exit(1)
-    except ValueError as e:
-        print(f"Error in configuration: {str(e)}")
-        exit(2)
     except PermissionError as e:
         print(
             f"Failed to set the encab user: {str(e)}."
             " \nTo set the user, you have to run encab as root."
         )
         exit(3)
+    except IOError as e:
+        print(f"I/O Error: {str(e)}")
+        exit(1)
+    except ValueError as e:
+        print(f"Error in configuration: {str(e)}")
+        exit(2)
     except KeyboardInterrupt as e:
         print(f"Encab was interrupted.")
         return
