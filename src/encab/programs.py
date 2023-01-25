@@ -12,6 +12,10 @@ from .program import ExecutionContext, Program
 
 
 class Programs(object):
+    """
+    controls the lifecycles of all configured programs
+    """
+
     def __init__(
         self,
         program_configs: Dict[str, ProgramConfig],
@@ -19,6 +23,20 @@ class Programs(object):
         args: List[str],
         encab_config: Optional[EncabConfig] = None,
     ) -> None:
+        """
+        creates a programs instance and sets/replaces
+        the main program form the arguments.
+
+        :param program_configs: the program configurations
+        :type program_configs: Dict[str, ProgramConfig]
+        :param context: the root program context
+        :type context: ExecutionContext
+        :param args: the command line arguments
+        :type args: List[str]
+        :param encab_config: the basic encab config, defaults to None
+        :type encab_config: Optional[EncabConfig], optional
+        :raises ConfigError: If programs connot find a program to run
+        """
         main: Optional[Program] = None
         self.helpers: List[Program] = list()
 
@@ -64,6 +82,9 @@ class Programs(object):
     def run(
         self,
     ):
+        """
+        runs the programs as configured and waits until the main program has stopped.
+        """
         self.start_helpers()
 
         self.main.start()
@@ -74,13 +95,23 @@ class Programs(object):
     def start(
         self,
     ):
+        """
+        starts the programs as configured
+        """
+
         self.start_helpers()
         self.main.start()
 
     def terminate(self):
+        """
+        terminates the main program and stops the helpers
+        """
         self.main.terminate()
         self.stop_helpers()
 
     def interrupt(self):
+        """
+        interrupts the main program and stops the helpers
+        """
         self.main.interrupt()
         self.stop_helpers()

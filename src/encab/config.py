@@ -1,3 +1,4 @@
+import re
 import io
 import os
 import shlex
@@ -121,13 +122,27 @@ class AbstractProgramConfig(AbstractConfig):
 
         level = self.loglevel
 
-        if level and level not in levels:
+        if level and isinstance(level, str) and level not in levels:
             levels_printed = ", ".join(levels)
             raise ConfigError(
                 f"Unsupported log level {level}. Supported levels are: {levels_printed}"
             )
 
         self.loglevel = DEBUG if self.debug else (level or INFO)
+
+    def _set_environment(self):
+        self.environment = self.environment or dict()
+
+        if not self.environment:
+            return
+
+        pattern = re.compile(r"^[a-zA-Z_]+[a-zA-Z0-9_]*")
+        for name in self.environment.keys():
+            if not pattern.match(name):
+                raise ConfigError(
+                    "Expected valid environment variable name (see POSIX 3.231 Name)"
+                    f" but was '{name}'."
+                )
 
     def __post_init__(self):
         """
@@ -141,8 +156,7 @@ class AbstractProgramConfig(AbstractConfig):
         ]
         """name of fields which were not set in this configuration"""
 
-        self.environment = self.environment or dict()
-
+        self._set_environment()
         self._set_log_level()
         self._set_umask()
 
@@ -306,17 +320,11 @@ class ExtensionConfig(AbstractConfig):
     enabled: Optional[bool]
     """True: The extension is enabled"""
 
-    '''
-    Necessary ?
-    
-    source: Optional[str]
-    """Source path of extension"""
-
     module: Optional[str]
-    """Module name of extension"""
-    '''
+    """Extension module name"""
 
     settings: Optional[Dict[str, Any]]
+    """Settings specific to the extension"""
 
     def __post_init__(self):
         self.enabled = True if self.enabled is None else self.enabled
@@ -354,7 +362,9 @@ class Config(AbstractConfig):
         """
         try:
             ConfigSchema = marshmallow_dataclass.class_schema(Config)
-            return ConfigSchema().load(yaml.safe_load(stream))  # type: ignore
+            config = ConfigSchema().load(yaml.safe_load(stream))
+            assert isinstance(config, Config)
+            return config
         except YAMLError as e:
             raise ConfigError(f"YAML error(s) {str(e)}")
         except ValidationError as e:

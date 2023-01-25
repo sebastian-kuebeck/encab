@@ -10,6 +10,7 @@ from logging import (
     Formatter,
     DEBUG,
     INFO,
+    FATAL,
     getLogger,
 )
 
@@ -75,32 +76,34 @@ class TestProgramObserver(LoggingProgramObserver):
 
 class ProgramsTest(unittest.TestCase):
     logger: Logger
+    loglevel: int
 
     @classmethod
     def setUpClass(cls) -> None:
+        cls.loglevel = FATAL
         handler = StreamHandler()
         formatter = Formatter(
-            "%(asctime)s %(levelname)-5.5s %(program)s %(threadName)s: %(message)s"
+            "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
         )
         handler.setFormatter(formatter)
-
-        basicConfig(level=DEBUG, handlers=[handler])
-        ProgramsTest.logger = getLogger(__name__)
+        root = getLogger()
+        root.addHandler(handler)
+        root.setLevel(cls.loglevel)
+        cls.logger = getLogger(__name__)
+        cls.logger.setLevel(cls.loglevel)
 
     def setUp(self):
-        self.observer = TestProgramObserver(
-            "encab", ProgramsTest.logger, {"program": "encab"}
-        )
+        self.observer = TestProgramObserver("encab", self.logger, {"program": "encab"})
         self.context = ExecutionContext({"X": "1"}, observer=self.observer)
         self.encab_config = EncabConfig.create(debug=False)
 
+    def program_config(self, **args) -> ProgramConfig:
+        return ProgramConfig.create(**args, loglevel=self.loglevel)
+
     def test_run(self):
         config = {
-            "helper": ProgramConfig.create(command="sleep 10", environment={"Y": "2"}),
-            "main": ProgramConfig.create(
-                command='echo "Test"',
-                environment={"Z": "3"},
-            ),
+            "helper": self.program_config(command="sleep 10", environment={"Y": "2"}),
+            "main": self.program_config(command='echo "Test"', environment={"Z": "3"}),
         }
 
         programs = Programs(config, self.context, [], self.encab_config)
@@ -118,8 +121,8 @@ class ProgramsTest(unittest.TestCase):
 
     def test_run_with_crashing_main(self):
         config = {
-            "helper": ProgramConfig.create(command="sleep 10"),
-            "main": ProgramConfig.create(command='echxo "Test"'),
+            "helper": self.program_config(command="sleep 10"),
+            "main": self.program_config(command='echxo "Test"'),
         }
 
         programs = Programs(config, self.context, [], self.encab_config)
@@ -137,8 +140,8 @@ class ProgramsTest(unittest.TestCase):
 
     def test_run_override_main(self):
         config = {
-            "helper": ProgramConfig.create(command="sleep 10"),
-            "main": ProgramConfig.create(sh='echo "Main"'),
+            "helper": self.program_config(command="sleep 10"),
+            "main": self.program_config(sh='echo "Main"'),
         }
 
         programs = Programs(
@@ -157,8 +160,8 @@ class ProgramsTest(unittest.TestCase):
 
     def test_interrupt(self):
         config = {
-            "helper": ProgramConfig.create(command="sleep 10"),
-            "main": ProgramConfig.create(command="sleep 10"),
+            "helper": self.program_config(command="sleep 10"),
+            "main": self.program_config(command="sleep 10"),
         }
 
         programs = Programs(config, self.context, [], self.encab_config)

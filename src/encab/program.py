@@ -5,15 +5,14 @@ import signal
 from io import IOBase
 from copy import deepcopy
 
-from typing import Dict, Optional, List, Tuple, cast
-from abc import ABC, abstractmethod
+from typing import Dict, Optional, cast
 
 from enum import IntEnum
 from subprocess import Popen, PIPE
 from threading import Thread
 from signal import SIGINT, SIGTERM
 
-from logging import Logger, DEBUG, INFO, ERROR, getLogger, Formatter, StreamHandler
+from logging import Logger, DEBUG, INFO, ERROR, getLogger
 
 from .config import ProgramConfig
 from .program_state import (
@@ -143,10 +142,12 @@ class Program(object):
 
         if self.config.command:
             self.shell = False
-            self.command = cast(List[str], self.config.command)
+            assert isinstance(self.config.command, list)
+            self.command = self.config.command
         else:
             self.shell = True
-            self.command = [cast(str, self.config.sh)]
+            assert isinstance(self.config.sh, str)
+            self.command = [self.config.sh]
 
         observer = self.context.observer
 
@@ -161,10 +162,17 @@ class Program(object):
         env = self.context.environment
         state = self._state_handler
         observer = self._observer
+        startup_delay = self.config.startup_delay
+        umask = self.config.umask
 
         try:
-            state.wait(cast(float, self.config.startup_delay))
-            observer.on_execution(cast(List[str], command), env, self.config)
+            assert isinstance(command, list)
+            assert isinstance(startup_delay, float) or isinstance(startup_delay, int)
+            assert isinstance(umask, int)
+
+            state.wait(float(startup_delay))
+
+            observer.on_execution(command, env, self.config)
             state.set(ProgramState.STARTING)
 
             shell = self.shell
@@ -177,7 +185,7 @@ class Program(object):
                 stderr=PIPE,
                 env=env,
                 user=self.config.user,
-                umask=cast(int, self.config.umask),
+                umask=umask,
                 shell=shell,
                 start_new_session=True,
             ) as process:
@@ -190,12 +198,12 @@ class Program(object):
                 LogStream(logger, INFO, cast(IOBase, process.stdout), extra).start()
 
                 process.wait()
-                state.handle_exit(process.returncode, cast(List[str], self.command))
+                state.handle_exit(process.returncode, self.command)
         except ProgramCanceledException as e:
             observer.on_cancel()
             state.set(ProgramState.CANCELED)
         except BaseException as e:
-            observer.on_crash(cast(List[str], self.command), e)
+            observer.on_crash(self.command, e)
             state.set(ProgramState.CRASHED)
         finally:
             self._process = None

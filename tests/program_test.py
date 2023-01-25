@@ -7,6 +7,7 @@ from logging import (
     Formatter,
     DEBUG,
     INFO,
+    FATAL,
     getLogger,
 )
 
@@ -22,26 +23,36 @@ from encab.program import (
 
 class ProgramTest(unittest.TestCase):
     logger: Logger
+    loglevel: int
 
     @classmethod
     def setUpClass(cls) -> None:
+        cls.loglevel = FATAL
         handler = StreamHandler()
         formatter = Formatter(
             "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
         )
         handler.setFormatter(formatter)
-        basicConfig(level=INFO, handlers=[handler])
-        ProgramTest.logger = getLogger(__name__)
+        root = getLogger()
+        root.addHandler(handler)
+        root.setLevel(cls.loglevel)
+        cls.logger = getLogger(__name__)
+        cls.logger.setLevel(cls.loglevel)
 
     def setUp(self):
         self.context = ExecutionContext(
             {},
-            LoggingProgramObserver("encab", ProgramTest.logger, {"program": "encab"}),
+            LoggingProgramObserver("encab", self.logger, {"program": "encab"}),
         )
 
+    def program(self, name, command=None, sh=None, startup_delay=None) -> Program:
+        config = ProgramConfig.create(
+            command=command, sh=sh, startup_delay=startup_delay, loglevel=self.loglevel
+        )
+        return Program(name, config, self.context)
+
     def test_start(self):
-        config = ProgramConfig.create(command='echo "Test"')
-        program = Program("test_start", config, self.context)
+        program = self.program("test_start", command=["echo", "Test"])
         state = program.start()
         self.assertTrue(
             state in (ProgramState.RUNNING, ProgramState.SUCCEEDED), f"state: {state}"
@@ -50,8 +61,7 @@ class ProgramTest(unittest.TestCase):
         self.assertEqual(ProgramState.SUCCEEDED, state)
 
     def test_start_script(self):
-        config = ProgramConfig.create(sh='echo "Test"')
-        program = Program("test_start", config, self.context)
+        program = self.program("test_start_script", sh='echo "Test"')
         state = program.start()
         self.assertTrue(
             state in (ProgramState.RUNNING, ProgramState.SUCCEEDED), f"state: {state}"
@@ -60,45 +70,39 @@ class ProgramTest(unittest.TestCase):
         self.assertEqual(ProgramState.SUCCEEDED, state)
 
     def test_crash(self):
-        config = ProgramConfig.create(command='excho "Test"')
-        program = Program("test_crash", config, self.context)
+        program = self.program("test_crash", command=["echox", "Test"])
         state = program.start()
         self.assertEqual(ProgramState.CRASHED, state)
 
     def test_join(self):
-        config = ProgramConfig.create(command="echo Test")
-        program = Program("test_join", config, self.context)
+        program = self.program("test_join", command="echo Test")
         program.start()
         state = program.join()
         self.assertEqual(ProgramState.SUCCEEDED, state)
 
     def test_interrupt(self):
-        config = ProgramConfig.create(command="sleep 10")
-        program = Program("test_interrupt", config, self.context)
+        program = self.program("test_interrupt", command="sleep 10")
         program.start()
         program.interrupt()
         state = program.join()
         self.assertEqual(ProgramState.STOPPED, state)
 
     def test_terminate(self):
-        config = ProgramConfig.create(command="sleep 10")
-        program = Program("test_terminate", config, self.context)
+        program = self.program("test_terminate", command="sleep 10")
         program.start()
         program.terminate()
         state = program.join()
         self.assertEqual(ProgramState.STOPPED, state)
 
     def test_join_wait(self):
-        config = ProgramConfig.create(command="echo test", startup_delay=0.1)
-        program = Program("test_join_wait", config, self.context)
+        program = self.program("test_join_wait", command="echo test", startup_delay=0.1)
         state = program.start()
         self.assertEqual(ProgramState.WAITING, state)
         state = program.join_wait()
         self.assertEqual(ProgramState.SUCCEEDED, state)
 
     def test_cancel(self):
-        config = ProgramConfig.create(command="echo test", startup_delay=1)
-        program = Program("test_cancel", config, self.context)
+        program = self.program("test_cancel", command="echo test", startup_delay=1)
         state = program.start()
         self.assertEqual(ProgramState.WAITING, state)
         state = program.interrupt()

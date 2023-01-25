@@ -13,7 +13,7 @@ from logging import (
 )
 
 from signal import SIGTERM, SIGINT, signal, getsignal
-from typing import Optional, List, Tuple, cast, Union
+from typing import Optional, List, Tuple, cast, Union, Dict
 from textwrap import shorten
 from threading import Event
 
@@ -116,12 +116,47 @@ def set_up_logger(config: Config) -> Logger:
         formatter = Formatter(config.encab.logformat)
 
         handler.setFormatter(formatter)
-        root_logger.setLevel(cast(Union[int, str], config.encab.loglevel))
+
+        loglevel = config.encab.loglevel
+        assert isinstance(loglevel, int) or isinstance(loglevel, str)
+
+        root_logger.setLevel(loglevel)
         root_logger.addHandler(handler)
 
     logger = getLogger(ENCAB)
     extensions.update_logger(ENCAB, logger)
     return logger
+
+
+def set_up_extensions(config: Config, logger: Logger, extra: Dict[str, str]):
+    """
+    sets up and configures the extensions.
+    In case of dry run, `encab.extensions.Extensions.validate_extension` instead of
+    `encab.extensions.Extensions.configure_extension` is run for each plugin.
+
+    :param config: the encab config
+    :type config: Config
+    :param logger: the logger to be used
+    :type logger: Logger
+    :param extra: the logger extension
+    :type extra: Dict[str, str]
+    """
+
+    if config.extensions:
+        dry_run = config.encab and cast(bool, config.encab.dry_run)
+
+        for name, econf in config.extensions.items():
+            if econf.module:
+                extensions.register_module(econf.module)
+
+            assert isinstance(econf.enabled, bool)
+
+            if dry_run:
+                extensions.validate_extension(name, econf.enabled, econf.settings or {})
+            else:
+                extensions.configure_extension(
+                    name, econf.enabled, econf.settings or {}
+                )
 
 
 def encab(
@@ -161,21 +196,16 @@ def encab(
             extra=extra,
         )
 
-        if config.encab and cast(bool, config.encab.dry_run):
+        dry_run = config.encab and cast(bool, config.encab.dry_run)
+
+        if dry_run:
             logger.info("Dry run. No program will be started.", extra=extra)
-            if config.extensions:
-                for name, econf in config.extensions.items():
-                    extensions.validate_extension(
-                        name, cast(bool, econf.enabled), econf.settings or {}
-                    )
+
+        set_up_extensions(config, logger, extra)
+
+        if dry_run:
             logger.info("Dry run succeeded. Exiting.", extra=extra)
             return
-
-        if config.extensions:
-            for name, econf in config.extensions.items():
-                extensions.configure_extension(
-                    name, cast(bool, econf.enabled), econf.settings or {}
-                )
 
         if config.encab:
             config.encab.set_user()

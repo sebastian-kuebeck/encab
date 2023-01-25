@@ -1,18 +1,17 @@
 import os
 import sys
+import re
 import yaml
 import marshmallow_dataclass
 
 from fnmatch import fnmatch
-from io import TextIOBase, StringIO
-from typing import Dict, Set, List, Any, Mapping, Tuple, cast, Optional, Union
-from logging import Logger, Filter, LogRecord, getLogger, INFO, ERROR, DEBUG
+from io import StringIO
+from typing import Dict, List, Any, cast, Optional, Union
+from logging import Logger, getLogger, INFO, ERROR
 from pluggy import HookimplMarker  # type: ignore
 
-from yaml.error import YAMLError
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from marshmallow.exceptions import MarshmallowError, ValidationError
-from abc import ABC
 
 from dotenv import dotenv_values
 from threading import Thread
@@ -147,24 +146,51 @@ class StartupScript:
             return
 
         if not os.path.isfile(path):
-            raise ConfigError(f"File {path} defined by loadenv does not exist")
+            raise ConfigError(
+                f"{STARTUP_SCRIPT}: File {path} defined by loadenv does not exist"
+            )
 
         mylogger.info("Loading env file: %s", path, extra={"program": ENCAB})
 
-        try:
-            env = dotenv_values(path)
+        self.update_env(environment, path=path)
 
-            if isinstance(env, dict):
-                env = {str(k): str(v or "") for k, v in env.items() if k}
+    def update_env(
+        self,
+        environment: Dict[str, str],
+        path: Optional[str] = None,
+        stream: Optional[StringIO] = None,
+    ):
+        try:
+            if path:
+                values = dotenv_values(dotenv_path=path)
+            else:
+                assert stream
+                values = dotenv_values(stream=stream)
+
+            if isinstance(values, dict):
+                env = self.clean_up_env(values)
                 mylogger.debug(
-                    "Adding environment: %s", str(dict(env)), extra={"program": ENCAB}
+                    "Adding environment: %s", str(env), extra={"program": ENCAB}
                 )
-                environment.update(cast(Dict[str, str], env))
+                environment.update(env)
 
         except IOError as e:
             raise IOError(
-                f"Failed to load environment specified in loadenv from {path}"
+                f"{STARTUP_SCRIPT}: Failed to load environment specified in loadenv from {path}"
             )
+
+    def clean_up_env(self, values: Dict[Any, Any]):
+        env = dict()
+        pattern = re.compile(r"^[a-zA-Z_]+[a-zA-Z0-9_]*")
+        for k, v in values.items():
+            name = str(k)
+            if not pattern.match(name):
+                raise ConfigError(
+                    f"{STARTUP_SCRIPT}: Expected valid environment variable name (see POSIX 3.231 Name)"
+                    f" but was '{name}'."
+                )
+            env[name] = "" if v is None else str(v)
+        return env
 
     def sh(self, environment: Dict[str, str]):
         if not self.settings:
@@ -181,12 +207,7 @@ class StartupScript:
 
         try:
             with Popen(
-                script,
-                stdout=PIPE,
-                stderr=PIPE,
-                env=environment,
-                shell=True,
-                start_new_session=True,
+                script, stdout=PIPE, stderr=PIPE, env=environment, shell=True
             ) as process:
                 LogStream(mylogger, ERROR, cast(IOBase, process.stderr), extra).start()
                 LogStream(mylogger, INFO, cast(IOBase, process.stdout), extra).start()
@@ -195,10 +216,10 @@ class StartupScript:
 
                 exit_code = process.returncode
                 if exit_code != 0:
-                    raise IOError(f"Startup script failed with exit code: {exit_code}")
+                    raise IOError(f"{STARTUP_SCRIPT}: Startup script failed with exit code: {exit_code}")
 
         except BaseException as e:
-            raise IOError(f"Failed to execute startup script: {e}")
+            raise IOError(f"{STARTUP_SCRIPT}: Failed to execute startup script: {e}")
 
     def buildenv(self, environment: Dict[str, str]):
         if not self.settings:
@@ -218,16 +239,14 @@ class StartupScript:
         lines: List[str] = list()
         try:
             with Popen(
-                script,
-                stderr=PIPE,
-                stdout=PIPE,
-                env=environment,
-                shell=True,
-                start_new_session=True,
+                script, stderr=PIPE, stdout=PIPE, env=environment, shell=True
             ) as process:
+                assert process.stdout is not None
+                assert process.stderr is not None
+
                 LogStream(mylogger, ERROR, cast(IOBase, process.stderr), extra).start()
 
-                for line in cast(IOBase, process.stdout):
+                for line in process.stdout:
                     strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
                     lines.append(strline)
 
@@ -237,21 +256,9 @@ class StartupScript:
                     raise IOError(f"Buildenv script failed with exit code: {exit_code}")
 
         except BaseException as e:
-            raise IOError(f"Failed to execute buildenv script: {e}")
+            raise IOError(f"{STARTUP_SCRIPT}: Failed to execute buildenv script: {e}")
 
-        try:
-            stream = StringIO("\n".join(lines))
-            env = dotenv_values(stream=stream)
-
-            if isinstance(env, dict):
-                env = {str(k): str(v or "") for k, v in env.items() if k}
-                mylogger.debug(
-                    "Adding environment: %s", str(dict(env)), extra={"program": ENCAB}
-                )
-                environment.update(cast(Dict[str, str], env))
-                
-        except IOError as e:
-            raise IOError(f"Failed to load environment specified in buieldenv: {e}")
+        self.update_env(environment, stream=StringIO("\n".join(lines)))
 
     def execute(self, environment: Dict[str, str]):
         if self.executed:

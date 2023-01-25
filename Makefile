@@ -4,9 +4,6 @@ dist:
 	python -m build
 	rm -r src/encab.egg-info
 
-doc:
-	sphinx-build -b html docs/source/ build/html
-
 test: validate
 	python -m unittest tests/all_tests.py
 
@@ -23,6 +20,8 @@ apidoc:
 
 html:
 	cd docs && make clean html && make html
+
+doc: apidoc html
 
 browse:
 	firefox docs/_build/html/index.html

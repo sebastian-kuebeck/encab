@@ -1,10 +1,29 @@
 encab:
-    debug: true
+    debug: false
+extensions:
+    log_sanitizer:
+        enabled: true
+        settings:
+            override: true
+            patterns: []
+    startup_script:
+        enabled: true
+        settings:
+            buildenv: "echo 'X=1' && echo 'Z=3'"
+            sh: "echo Start!"
+    validation:
+        enabled: true
+        settings:
+            variables:
+                X: 
+                    required: true
+                Z: 
+                    required: true
+
 programs:
     sleep:
         command: sleep 10
     main:
         debug: true
-        command: echo "Test"
-        umask: "700"
+        sh: echo $X $Z
         user: runner

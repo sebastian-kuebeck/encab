@@ -1,3 +1,4 @@
+import os
 import io
 import unittest
 
@@ -10,6 +11,7 @@ from logging import (
     Formatter,
     DEBUG,
     INFO,
+    FATAL,
     getLogger,
 )
 
@@ -18,7 +20,7 @@ from pprint import pprint
 
 from typing import Optional, List, Tuple, Dict
 from threading import Thread
-from subprocess import Popen
+from subprocess import Popen, PIPE
 
 from encab.config import ProgramConfig
 from encab.program_state import (
@@ -51,8 +53,9 @@ class TestProgram(object):
             self._state_handler.wait(self.startup_delay)
             self._state_handler.set(ProgramState.STARTING)
 
-            self._process = Popen(self.command)
+            self._process = Popen(self.command, stdout=PIPE, stderr=PIPE)
             self._state_handler.set(ProgramState.RUNNING)
+            self._process.communicate()
             self._process.wait()
 
             self._state_handler.handle_exit(self._process.returncode, self.command)
@@ -90,19 +93,25 @@ class TestProgram(object):
 
 class ProgramStateTest(unittest.TestCase):
     logger: Logger
+    loglevel: int
 
     @classmethod
     def setUpClass(cls) -> None:
+        cls.loglevel = FATAL
         handler = StreamHandler()
         formatter = Formatter(
             "%(asctime)s %(levelname)-5.5s %(module)s %(program)s %(threadName)s: %(message)s"
         )
         handler.setFormatter(formatter)
-        basicConfig(level=DEBUG, handlers=[handler])
+        root = getLogger()
+        root.addHandler(handler)
+        root.setLevel(cls.loglevel)
         cls.logger = getLogger(__name__)
+        cls.logger.setLevel(cls.loglevel)
 
     def setUp(self) -> None:
         super().setUp()
+
         self.observer = LoggingProgramObserver(
             "encab", self.logger, {"program": "extra"}
         )

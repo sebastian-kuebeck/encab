@@ -8,5 +8,6 @@ now:
 
 later:
 
+- import validation from external file
 - auto restart programs
 - magrathea extension

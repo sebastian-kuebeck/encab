@@ -1,9 +1,8 @@
-import sys
-import os
-
 from logging import Logger
 from typing import Dict, Any, List
-from pluggy import HookspecMarker, PluginManager  # type: ignore
+from importlib import import_module
+from pluggy import HookspecMarker, PluginManager, PluginValidationError  # type: ignore
+
 
 ENCAB = "encab"
 
@@ -139,6 +138,17 @@ class Extensions(object):
         """
         for extension in extensions:
             self.plugin_manager.register(extension)
+
+    def register_module(self, module_name: str):
+        try:
+            module = import_module(module_name)
+            self.plugin_manager.register(module)
+        except ModuleNotFoundError as e:
+            raise FileNotFoundError(f"Extension module {module_name} not found")
+        except ImportError as e:
+            raise IOError(f"Failed to load extension module {module_name}: {str(e)}")
+        except PluginValidationError as e:
+            raise IOError(f"Failed to load extension module {module_name}: {str(e)}")
 
 
 extensions = Extensions()

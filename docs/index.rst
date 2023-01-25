@@ -56,7 +56,9 @@ Features
 - run multiple programs in a container at a time with transparent logging
 - run programs as different users
 - handle environment variables in a more flexible way
-- simplify container debugging 
+- simplify container debugging
+- simplify container debugging
+- load, build, validate environment variables
 
 Narrative Documentation
 -----------------------

@@ -3,14 +3,12 @@ import marshmallow_dataclass
 
 from fnmatch import fnmatch
 from io import TextIOBase
-from typing import Dict, Set, List, Any, Mapping, Tuple, cast, Optional
-from logging import Logger, Filter, LogRecord, getLogger, INFO
+from typing import Dict, Set, List, Any, Tuple, Optional
+from logging import Logger, Filter, getLogger
 from pluggy import HookimplMarker  # type: ignore
 
-from yaml.error import YAMLError
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from marshmallow.exceptions import MarshmallowError, ValidationError
-from abc import ABC
 
 ENCAB = "encab"
 LOG_SANITIZER = "log_sanitizer"
@@ -95,7 +93,8 @@ class SanitizingFilter(Filter):
 
     def filter(self, record):
         record.msg = self.sanitize(record.msg)
-        record.args = self.sanitize_all(cast(Tuple[Any], record.args))
+        assert isinstance(record.args, tuple)
+        record.args = self.sanitize_all(record.args)
         return True
 
 
@@ -128,11 +127,13 @@ class LogSanitizerExtension(object):
         self.settings = LogSanitizerSettings.load(settings)
 
         if not self.settings.override:
-            patterns = cast(List[str], self.settings.patterns)
+            assert isinstance(self.settings.patterns, list)
+            patterns = self.settings.patterns
             self.settings.patterns = [*patterns, *self.PATTERNS]
 
     def is_sensitive(self, name: str) -> bool:
-        patterns = cast(List[str], self.settings.patterns)
+        assert isinstance(self.settings.patterns, list)
+        patterns = self.settings.patterns
         for pattern in patterns:
             if fnmatch(name.upper(), pattern.upper()):
                 return True
