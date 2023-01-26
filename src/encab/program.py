@@ -1,11 +1,8 @@
 import sys
-import os
-import signal
 
-from io import IOBase
 from copy import deepcopy
 
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, IO
 
 from enum import IntEnum
 from subprocess import Popen, PIPE
@@ -31,7 +28,7 @@ class LogStream(object):
     """
 
     def __init__(
-        self, logger: Logger, log_level: int, stream: IOBase, extra: Dict[str, str]
+        self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
     ) -> None:
         """
         :param Logger logger: the logger to which the stream content is written
@@ -166,7 +163,6 @@ class Program(object):
         umask = self.config.umask
 
         try:
-            assert isinstance(command, list)
             assert isinstance(startup_delay, float) or isinstance(startup_delay, int)
             assert isinstance(umask, int)
 
@@ -189,13 +185,16 @@ class Program(object):
                 shell=shell,
                 start_new_session=True,
             ) as process:
+                assert process.stdout is not None
+                assert process.stderr is not None
+
                 state.set(ProgramState.RUNNING)
                 self._process = process
 
                 observer.on_run(process.pid)
 
-                LogStream(logger, ERROR, cast(IOBase, process.stderr), extra).start()
-                LogStream(logger, INFO, cast(IOBase, process.stdout), extra).start()
+                LogStream(logger, ERROR, process.stderr, extra).start()
+                LogStream(logger, INFO, process.stdout, extra).start()
 
                 process.wait()
                 state.handle_exit(process.returncode, self.command)

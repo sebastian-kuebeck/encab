@@ -6,7 +6,7 @@ import marshmallow_dataclass
 
 from fnmatch import fnmatch
 from io import StringIO
-from typing import Dict, List, Any, cast, Optional, Union
+from typing import Dict, List, Any, Optional, Union, IO
 from logging import Logger, getLogger, INFO, ERROR
 from pluggy import HookimplMarker  # type: ignore
 
@@ -87,7 +87,7 @@ class LogStream(object):
     """
 
     def __init__(
-        self, logger: Logger, log_level: int, stream: IOBase, extra: Dict[str, str]
+        self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
     ) -> None:
         """
         :param Logger logger: the logger to which the stream content is written
@@ -209,14 +209,19 @@ class StartupScript:
             with Popen(
                 script, stdout=PIPE, stderr=PIPE, env=environment, shell=True
             ) as process:
-                LogStream(mylogger, ERROR, cast(IOBase, process.stderr), extra).start()
-                LogStream(mylogger, INFO, cast(IOBase, process.stdout), extra).start()
+                assert process.stderr
+                assert process.stdout
+
+                LogStream(mylogger, ERROR, process.stderr, extra).start()
+                LogStream(mylogger, INFO, process.stdout, extra).start()
 
                 process.wait()
 
                 exit_code = process.returncode
                 if exit_code != 0:
-                    raise IOError(f"{STARTUP_SCRIPT}: Startup script failed with exit code: {exit_code}")
+                    raise IOError(
+                        f"{STARTUP_SCRIPT}: Startup script failed with exit code: {exit_code}"
+                    )
 
         except BaseException as e:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute startup script: {e}")
@@ -244,7 +249,7 @@ class StartupScript:
                 assert process.stdout is not None
                 assert process.stderr is not None
 
-                LogStream(mylogger, ERROR, cast(IOBase, process.stderr), extra).start()
+                LogStream(mylogger, ERROR, process.stderr, extra).start()
 
                 for line in process.stdout:
                     strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")

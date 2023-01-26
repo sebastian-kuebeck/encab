@@ -1,0 +1,15 @@
+#
+# Sample validation file for testing the validation extension
+#
+X:
+  format: int
+  required: true
+  default: "1"
+  min_length: 1
+  max_length: 5
+  regex: "0|1"
+Y:
+  required: false
+  format: int
+  min_value: 0
+  max_value: 10

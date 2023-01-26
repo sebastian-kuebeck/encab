@@ -1,11 +1,4 @@
-import sys
-import os
-import signal
-
-from io import IOBase
-from copy import deepcopy
-
-from typing import Dict, Optional, List, Callable
+from typing import Dict, Optional, List
 
 from .config import ProgramConfig, EncabConfig, ConfigError
 from .program import ExecutionContext, Program

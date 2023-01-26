@@ -158,7 +158,7 @@ class ValidationSettings(object):
     This class contains the extensions/startup_script/settings content.
     """
 
-    variables: Dict[str, Validation]
+    variables: Optional[Dict[str, Validation]]
     """ the environmant variable specifications """
 
     include: Optional[str]
@@ -179,7 +179,7 @@ class ValidationSettings(object):
     """
 
     def __post_init__(self):
-        pass
+        self.variables = self.variables or {}
 
     @staticmethod
     def load(settings: Dict[str, Any]) -> "ValidationSettings":
@@ -235,6 +235,105 @@ class ValidationSettings(object):
 extension_impl = HookimplMarker(ENCAB)
 
 
+from abc import ABC, abstractmethod
+
+
+class VariableValidator(ABC):
+    def __init__(self, name: str, validation: Validation) -> None:
+        self.name = name
+        self.validation = validation
+
+    @abstractmethod
+    def validate(self, value: str):
+        pass
+
+    def report_error(self, message: str):
+        raise ConfigError(
+            f"{VALIDATION}: Validation for variable {self.name} failed: {message}."
+        )
+
+
+class FormatValidator(VariableValidator):
+    def validate(self, value: str):
+        format = self.validation.format
+
+        if format == "string":
+            pass
+        elif format == "int":
+            try:
+                int(value)
+            except:
+                self.report_error("Expected integer format but was '{value}'")
+        elif format == "float":
+            try:
+                float(value)
+            except:
+                self.report_error("Expected float format but was '{value}'")
+        else:
+            assert False, f"Unsupported format {format}."
+
+
+class RangeValidator(VariableValidator):
+    def validate(self, value: str):
+        min_value = self.validation.min_value
+        max_value = self.validation.max_value
+
+        if not(min_value or max_value):
+            return
+
+        try:
+            n = float(value)
+        except:
+            self.report_error(
+                "Expected to be float (as min_value and/or max_value was given)"
+                f" but was '{value}'"
+            )
+
+        if min_value and n < min_value:
+            self.report_error("Expected {self.name} >= {min_value} but was {n}")
+
+        if max_value and n > max_value:
+            self.report_error(
+                f"{VALIDATION}: Expected {self.name} <= {max_value} but was {n}"
+            )
+
+
+class LengthValidator(VariableValidator):
+    def validate(self, value: str):
+        min_length = self.validation.min_length
+        max_length = self.validation.max_length
+
+        if min_length and len(value) < min_length:
+            self.report_error(f"Expected length >= {min_length} but was {len(value)}")
+
+        if max_length and len(value) > max_length:
+            self.report_error(f"Expected length <= {max_length} but was {len(value)}")
+
+
+class RegexValidator(VariableValidator):
+    def validate(self, value: str):
+        regex = self.validation.regex
+
+        if regex and not match(regex, value):
+            self.report_error(f"Expected to match '{str(regex)}'")
+
+
+class CombinedValidator(VariableValidator):
+    def __init__(self, name: str, validation: Validation) -> None:
+        super().__init__(name, validation)
+        validator_classes = (
+            FormatValidator,
+            RangeValidator,
+            LengthValidator,
+            RegexValidator,
+        )
+        self.validators = [c(name, validation) for c in validator_classes]  # type: ignore
+
+    def validate(self, value: str):
+        for validator in self.validators:
+            validator.validate(value)
+
+
 class Validator(object):
     def __init__(self) -> None:
         self.settings = ValidationSettings(dict(), None)
@@ -252,77 +351,11 @@ class Validator(object):
     def update_settings(self, settings: ValidationSettings):
         validations = settings.include_validations()
         self.validations.update(validations)
+        assert settings.variables
         self.validations.update(settings.variables)
         self.validate_names()
 
-    def format(self, name: str, value: str, validation: Validation):
-        format = validation.format
-
-        if format == "string":
-            pass
-        elif format == "int":
-            try:
-                int(value)
-            except:
-                raise ConfigError(
-                    f"{VALIDATION}: Expected {name} to be of integer format."
-                )
-        elif format == "float":
-            try:
-                float(value)
-            except:
-                raise ConfigError(
-                    f"{VALIDATION}: Expected {name} to be of float format."
-                )
-        else:
-            assert False, f"Unsupported format {format}."
-
-    def range(self, name: str, value: str, validation: Validation):
-        min_value = validation.min_value
-        max_value = validation.max_value
-
-        if not min_value or max_value:
-            return
-
-        try:
-            n = float(value)
-        except:
-            raise ConfigError(
-                f"{VALIDATION}: Expected {name} to be float as "
-                f"min_value and/or max_value was given but was '{value}'"
-            )
-
-        if min_value and n < min_value:
-            raise ConfigError(
-                f"{VALIDATION}: Expected {name} >= {min_value} but was {n}"
-            )
-
-        if max_value and n > max_value:
-            raise ConfigError(
-                f"{VALIDATION}: Expected {name} <= {max_value} but was {n}"
-            )
-
-    def length(self, name: str, value: str, validation: Validation):
-        min_length = validation.min_length
-        max_length = validation.max_length
-
-        if min_length and len(value) < min_length:
-            raise ConfigError(
-                f"{VALIDATION}: Expected {name} length >= {min_length} but was {len(value)}"
-            )
-
-        if max_length and len(value) > max_length:
-            raise ConfigError(
-                f"{VALIDATION}: Expected {name} length <= {max_length} but was {len(value)}"
-            )
-
-    def regex(self, name: str, value: str, validation: Validation):
-        regex = validation.regex
-
-        if regex and not match(regex, value):
-            raise ConfigError(f"{VALIDATION}: Expected {name} to match '{str(regex)}'")
-
-    def var(self, program: str, name: str, value: str):
+    def validate(self, program: str, name: str, value: str):
         validation: Optional[Validation] = self.validations.get(name)
 
         if not validation:
@@ -338,22 +371,20 @@ class Validator(object):
             extra={"program": ENCAB},
         )
 
-        self.format(name, value, validation)
-        self.range(name, value, validation)
-        self.length(name, value, validation)
-        self.regex(name, value, validation)
+        CombinedValidator(name, validation).validate(value)
 
-    def validate(self, program: str, vars: Dict[str, str]):
+    def validate_all(self, program: str, vars: Dict[str, str]):
         vars_set: Set[str] = set()
 
         for name, value in vars.items():
             if value:
                 vars_set.add(name)
-                self.var(program, name, value)
+                self.validate(program, name, value)
 
         # mylogger.debug("Variables set so far: %s", str(vars_set), extra={"program": ENCAB})
 
         for name, validation in self.validations.items():
+
             if validation.programs and program not in validation.programs:
                 continue
 
@@ -407,6 +438,6 @@ class ValidationExtension(object):
             return
 
         if program_name in self.programs_updated:
-            self.validator.validate(program_name, environment)
+            self.validator.validate_all(program_name, environment)
         else:
             self.programs_updated.add(program_name)

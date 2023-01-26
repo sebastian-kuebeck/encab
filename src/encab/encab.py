@@ -13,7 +13,7 @@ from logging import (
 )
 
 from signal import SIGTERM, SIGINT, signal, getsignal
-from typing import Optional, List, Tuple, cast, Union, Dict
+from typing import Optional, List, Tuple, Union, Dict
 from textwrap import shorten
 from threading import Event
 
@@ -143,7 +143,8 @@ def set_up_extensions(config: Config, logger: Logger, extra: Dict[str, str]):
     """
 
     if config.extensions:
-        dry_run = config.encab and cast(bool, config.encab.dry_run)
+        assert config.encab and isinstance(config.encab.dry_run, bool)
+        dry_run = config.encab.dry_run
 
         for name, econf in config.extensions.items():
             if econf.module:
@@ -196,7 +197,9 @@ def encab(
             extra=extra,
         )
 
-        dry_run = config.encab and cast(bool, config.encab.dry_run)
+        assert config.encab
+        assert isinstance(config.encab.dry_run, bool)
+        dry_run = config.encab.dry_run
 
         if dry_run:
             logger.info("Dry run. No program will be started.", extra=extra)
@@ -207,14 +210,13 @@ def encab(
             logger.info("Dry run succeeded. Exiting.", extra=extra)
             return
 
-        if config.encab:
-            config.encab.set_user()
+        config.encab.set_user()
 
-            if config.encab.user:
-                os.setuid(int(config.encab.user))
+        if config.encab.user:
+            os.setuid(int(config.encab.user))
 
-            if config.encab.umask and config.encab.umask != -1:
-                os.umask(int(config.encab.umask))
+        if config.encab.umask and config.encab.umask != -1:
+            os.umask(int(config.encab.umask))
 
         program_config = config.programs or {}
 
@@ -224,7 +226,7 @@ def encab(
         observer = LoggingProgramObserver(ENCAB, logger, extra)
         context = ExecutionContext(dict(os.environ), observer)
 
-        if config.encab and config.encab.environment:
+        if config.encab.environment:
             context = context.extend(config.encab.environment)
 
         args = args if args is not None else sys.argv[1:]
@@ -257,7 +259,7 @@ def encab(
 
         programs.run()
 
-        if config.encab and config.encab.halt_on_exit:
+        if config.encab.halt_on_exit:
             logger.info("Programs ended. Halting for diagnose.", extra=extra)
             signal(SIGINT, sigint_handler)
             signal(SIGTERM, sigterm_handler)
