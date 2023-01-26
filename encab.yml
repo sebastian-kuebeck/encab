@@ -1,7 +1,7 @@
 encab:
-    dry_run: True
-    debug: true
-    halt_on_exit: False
+    dry_run: false
+    debug: false
+    halt_on_exit: false
     environment:
         secret_a: "1111"
 extensions:
@@ -11,6 +11,25 @@ extensions:
             override: false
             patterns: 
                 - "*MAGIC*"
+    startup_script:
+        enabled: true
+        settings:
+            buildenv: 
+                - echo 'X=1' 
+                - echo 'Z=3'
+    validation:
+        enabled: true
+        settings:
+            include: validation.yml
+            variables:
+                secret_a:
+                    required: true
+
+    tests:
+        module: tests.ext.test_module_extension 
+        settings:
+            foo: bar
+
 programs:
     sleep:
         command: sleep 10
@@ -18,5 +37,5 @@ programs:
         environment:
             secret_b: "9999"
         sh: 
-            - echo $secret_a
+            - echo $X $Z
             - echo $secret_b
