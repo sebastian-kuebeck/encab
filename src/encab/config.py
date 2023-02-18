@@ -231,10 +231,8 @@ class EncabConfig(AbstractProgramConfig):
     def __post_init__(self):
         super().__post_init__()
 
-        self.dry_run = None if self.dry_run is None else self.dry_run
-
-        if self.halt_on_exit is None:
-            self.halt_on_exit = False
+        self.dry_run = self.dry_run or False
+        self.halt_on_exit = self.halt_on_exit or False
 
         self._set_log_format()
 

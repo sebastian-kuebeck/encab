@@ -72,7 +72,7 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
     if encab_stream:
         config = Config.load(encab_stream)
     else:
-        with open(encab_file) as f:
+        with open(encab_file, "r") as f:
             config = Config.load(f)
 
     ENCAB_DRY_RUN = "ENCAB_DRY_RUN"
@@ -93,7 +93,8 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
                 f" but was '{value}'."
             )
 
-    if config.encab and dry_run is not None:
+    assert config.encab
+    if dry_run is not None:
         config.encab.dry_run = dry_run
 
     return (config, f"file {encab_file}, source: {source}.")
@@ -197,8 +198,7 @@ def encab(
             extra=extra,
         )
 
-        assert config.encab
-        assert isinstance(config.encab.dry_run, bool)
+        assert config.encab and isinstance(config.encab.dry_run, bool)
         dry_run = config.encab.dry_run
 
         if dry_run:

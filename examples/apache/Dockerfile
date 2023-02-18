@@ -8,15 +8,14 @@ RUN apt-get -q update && apt-get -y -q install cron tmpreaper
 
 # --------------------------------------------
 # Install Encab 
-RUN apt-get -y -q install python3-pip python3-venv
+RUN apt-get -y -q install python3-pip
 
 ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 
-ENV PATH=$PATH:/root/.local/bin
-RUN python3 -m pip install pipx --user 
 ADD ${ENCAB_WHEEL} .
 
-RUN python3 -m pipx install ./${ENCAB_WHEEL}
+ENV PATH=$PATH:/root/.local/bin
+RUN pip install ./${ENCAB_WHEEL} --user
 
 # --------------------------------------------
 # Set up cron job

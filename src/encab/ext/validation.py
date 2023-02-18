@@ -129,7 +129,7 @@ class Validation(object):
 @dataclass
 class ValidationSettings(object):
     """
-    the startup script settings
+    the validation settings
 
     eample:
 
@@ -155,7 +155,7 @@ class ValidationSettings(object):
                             max_value: 10
 
 
-    This class contains the extensions/startup_script/settings content.
+    This class contains the extensions/variables/settings content.
     """
 
     variables: Optional[Dict[str, Validation]]
@@ -278,7 +278,7 @@ class RangeValidator(VariableValidator):
         min_value = self.validation.min_value
         max_value = self.validation.max_value
 
-        if not(min_value or max_value):
+        if not (min_value or max_value):
             return
 
         try:
