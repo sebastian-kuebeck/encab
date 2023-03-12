@@ -1,2 +1,6 @@
 Installing
 ==========
+
+From Source
+-----------
+

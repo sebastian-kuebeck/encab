@@ -1,17 +1,14 @@
 import io
 import unittest
 
-from pprint import pprint
-from encab.config import Config, ProgramConfig, EncabConfig
-from logging import INFO, DEBUG
-from typing import cast
 
 from encab.encab import encab, load_config
+
 
 class EncabTest(unittest.TestCase):
     def setUp(self) -> None:
         return super().setUp()
-    
+
     def test_load_config(self):
         config = """
             encab:
@@ -27,7 +24,7 @@ class EncabTest(unittest.TestCase):
         self.assertEqual("file stream, source: Argument.", source)
         assert config.encab
         self.assertTrue(config.encab.dry_run)
-    
+
     def test_encab(self):
         config = """
             encab:
@@ -39,5 +36,5 @@ class EncabTest(unittest.TestCase):
                 main:
                     command: ['echo', 'X']
         """
-        
+
         encab(encab_stream=io.StringIO(config))

@@ -75,6 +75,11 @@ class AbstractProgramConfig(AbstractConfig):
     """
 
     def _set_umask(self):
+        """
+        sets umask and turns it into an int if necessary
+
+        :raises ConfigError: is umask is given as string and is not an octal string
+        """
         umask = self.umask
 
         if umask:
@@ -114,10 +119,15 @@ class AbstractProgramConfig(AbstractConfig):
 
             if user != os.getuid() and os.getuid() != 0:
                 raise ConfigError(
-                    f"Encab has to run as root to run it or programs as different user"
+                    "Encab has to run as root to run it or programs as different user"
                 )
 
     def _set_log_level(self):
+        """
+        selts the log level and turns it into an int if necessary
+
+        :raises ConfigError: if an unspecified log level is given
+        """
         levels = ["CRITICAL", "FATAL", "ERROR", "WARN", "WARNING", "INFO", "DEBUG"]
 
         level = self.loglevel
@@ -131,6 +141,11 @@ class AbstractProgramConfig(AbstractConfig):
         self.loglevel = DEBUG if self.debug else (level or INFO)
 
     def _set_environment(self):
+        """
+        sets the environment as dictionary
+
+        :raises ConfigError: if variable names don't comply with POSIX 3.231 Name standard
+        """
         self.environment = self.environment or dict()
 
         if not self.environment:
@@ -297,7 +312,7 @@ class ProgramConfig(AbstractProgramConfig):
 
         if sh and command:
             raise ConfigError(
-                f"Please specify either sh or command attribute for programs"
+                "Please specify either sh or command attribute for programs"
             )
 
         if command:

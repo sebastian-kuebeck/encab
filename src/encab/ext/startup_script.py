@@ -4,7 +4,6 @@ import re
 import yaml
 import marshmallow_dataclass
 
-from fnmatch import fnmatch
 from io import StringIO
 from typing import Dict, List, Any, Optional, Union, IO
 from logging import Logger, getLogger, INFO, ERROR
@@ -16,7 +15,6 @@ from marshmallow.exceptions import MarshmallowError, ValidationError
 from dotenv import dotenv_values
 from threading import Thread
 from subprocess import Popen, PIPE
-from io import IOBase
 
 ENCAB = "encab"
 STARTUP_SCRIPT = "startup_script"
@@ -59,7 +57,6 @@ class StartupScriptSettings(object):
     sh: Union[List[str], str, None]
 
     def __post_init__(self):
-
         if isinstance(self.buildenv, str):
             self.buildenv = [self.buildenv]
 
@@ -108,7 +105,7 @@ class LogStream(object):
                 self.logger.log(self.log_level, strline, extra=self.extra)
         except ValueError:
             pass  # stream was closed
-        except OSError as e:
+        except OSError:
             self.logger.exception(
                 "I/O Error while logging: %s", self.name, extra=self.extra  # type: ignore
             )
@@ -137,6 +134,13 @@ class StartupScript:
         self.settings = settings
 
     def loadenv(self, environment: Dict[str, str]):
+        """
+        loads the environment from a file if the plugin settings demand it
+
+        :param environment: the environment
+        :type environment: Dict[str, str]
+        :raises ConfigError: if the file could not be loaded
+        """
         if not self.settings:
             return
 
@@ -160,6 +164,19 @@ class StartupScript:
         path: Optional[str] = None,
         stream: Optional[StringIO] = None,
     ):
+        """
+        validates and updates the environment form a file or stream in dotenv_ format
+
+        .. _dotenv: https://pypi.org/project/python-dotenv/
+
+        :param environment: the environment
+        :type environment: Dict[str, str]
+        :param path: the path from which the environment should be loaded, defaults to None
+        :type path: Optional[str], optional
+        :param stream: _description_, defaults to None
+        :type stream: Optional[StringIO], optional
+        :raises IOError: if the environment could not be loaded
+        """
         try:
             if path:
                 values = dotenv_values(dotenv_path=path)
@@ -174,15 +191,24 @@ class StartupScript:
                 )
                 environment.update(env)
 
-        except IOError as e:
+        except IOError:
             raise IOError(
                 f"{STARTUP_SCRIPT}: Failed to load environment specified in loadenv from {path}"
             )
 
-    def clean_up_env(self, values: Dict[Any, Any]):
+    def clean_up_env(self, values: Dict[Any, Any]) -> Dict[str, str]:
+        """
+        returns the environment variable dictionary such that it can be safely used by programs
+
+        :param values: the raw dictionary
+        :type values: Dict[Any, Any]
+        :raises ConfigError: if a variable name does not comply with POSIX 3.231 Name
+        :return: the cleaned up and validated environment variable dictionary
+        :rtype: Dict[str, str]
+        """
         env = dict()
         pattern = re.compile(r"^[a-zA-Z_]+[a-zA-Z0-9_]*")
-        for k, v in values.items():
+        for k, v in values.items():  # type: ignore
             name = str(k)
             if not pattern.match(name):
                 raise ConfigError(
@@ -193,6 +219,13 @@ class StartupScript:
         return env
 
     def sh(self, environment: Dict[str, str]):
+        """
+        runs the script with the given environment if the plugin settings demand it
+
+        :param environment: the environment
+        :type environment: Dict[str, str]
+        :raises IOError: if the script execution fails
+        """
         if not self.settings:
             return
 
@@ -227,6 +260,14 @@ class StartupScript:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute startup script: {e}")
 
     def buildenv(self, environment: Dict[str, str]):
+        """
+        runs the buildenv script, processes and updates the current environment
+
+        :param environment: the environment
+        :type environment: Dict[str, str]
+        :raises IOError: if the script execution fails
+        """
+
         if not self.settings:
             return
 

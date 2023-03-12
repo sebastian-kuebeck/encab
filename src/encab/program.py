@@ -4,17 +4,15 @@ from copy import deepcopy
 
 from typing import Dict, Optional, IO
 
-from enum import IntEnum
 from subprocess import Popen, PIPE
 from threading import Thread
 from signal import SIGINT, SIGTERM
 
-from logging import Logger, DEBUG, INFO, ERROR, getLogger
+from logging import Logger, INFO, ERROR, getLogger
 
 from .config import ProgramConfig
 from .program_state import (
     ProgramObserver,
-    LoggingProgramObserver,
     ProgramState,
     ProgramStateHandler,
     ProgramCanceledException,
@@ -49,7 +47,7 @@ class LogStream(object):
                 self.logger.log(self.log_level, strline, extra=self.extra)
         except ValueError:
             pass  # stream was closed
-        except OSError as e:
+        except OSError:
             self.logger.exception(
                 "I/O Error while logging: %s", self.name, extra=self.extra  # type: ignore
             )
@@ -175,7 +173,7 @@ class Program(object):
             if shell:
                 command = command[0]
 
-            with Popen(
+            process = Popen(
                 command,
                 stdout=PIPE,
                 stderr=PIPE,
@@ -184,21 +182,21 @@ class Program(object):
                 umask=umask,
                 shell=shell,
                 start_new_session=True,
-            ) as process:
-                assert process.stdout is not None
-                assert process.stderr is not None
+            )
+            assert process.stdout is not None
+            assert process.stderr is not None
 
-                state.set(ProgramState.RUNNING)
-                self._process = process
+            state.set(ProgramState.RUNNING)
+            self._process = process
 
-                observer.on_run(process.pid)
+            observer.on_run(process.pid)
 
-                LogStream(logger, ERROR, process.stderr, extra).start()
-                LogStream(logger, INFO, process.stdout, extra).start()
+            LogStream(logger, ERROR, process.stderr, extra).start()
+            LogStream(logger, INFO, process.stdout, extra).start()
 
-                process.wait()
-                state.handle_exit(process.returncode, self.command)
-        except ProgramCanceledException as e:
+            process.wait()
+            state.handle_exit(process.returncode, self.command)
+        except ProgramCanceledException:
             observer.on_cancel()
             state.set(ProgramState.CANCELED)
         except BaseException as e:

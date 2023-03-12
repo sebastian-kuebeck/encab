@@ -1,10 +1,8 @@
 import io
 import unittest
 
-from pprint import pprint
 from encab.config import Config, ProgramConfig, EncabConfig
-from logging import INFO, DEBUG
-from typing import cast
+from logging import DEBUG
 
 
 class ConfigTest(unittest.TestCase):

@@ -2,7 +2,6 @@ TODOS
 =====
 
 now:
-
 - improve documentation
 
 later:

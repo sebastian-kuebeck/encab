@@ -47,8 +47,9 @@ class Extensions(object):
     @extension_method
     def validate_extension(self, name: str, enabled: bool, settings: Dict[str, Any]):
         """
-        similar to :meth:`encab.extensions.Extensions.configure_extension` but the extension validates it's configuration
-        during a dry run, where the extension isn't actually startet.
+        similar to :meth:`encab.extensions.Extensions.configure_extension`
+        but the extension validates it's configuration during a dry run,
+        where the extension isn't actually startet.
 
         see :meth:`encab.extensions.Extensions.configure_extension` for details.
 
@@ -143,7 +144,7 @@ class Extensions(object):
         try:
             module = import_module(module_name)
             self.plugin_manager.register(module)
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             raise FileNotFoundError(f"Extension module {module_name} not found")
         except ImportError as e:
             raise IOError(f"Failed to load extension module {module_name}: {str(e)}")

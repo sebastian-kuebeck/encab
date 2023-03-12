@@ -1,6 +1,6 @@
 import unittest
 
-from typing import Set, Dict, Any, Optional, List
+from typing import Set, Dict, Optional, List
 from logging import LogRecord, INFO
 
 from encab.ext.log_sanitizer import (

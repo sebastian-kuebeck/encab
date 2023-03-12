@@ -4,21 +4,19 @@ import io
 
 from logging import (
     Logger,
-    DEBUG,
-    INFO,
     getLogger,
     StreamHandler,
     Formatter,
-    basicConfig,
 )
 
 from signal import SIGTERM, SIGINT, signal, getsignal
-from typing import Optional, List, Tuple, Union, Dict
+from typing import Optional, List, Tuple, Dict
 from textwrap import shorten
 from threading import Event
 
 from .config import Config, ConfigError
-from .program import LoggingProgramObserver, ExecutionContext
+from .program_state import LoggingProgramObserver
+from .program import ExecutionContext
 from .programs import Programs
 from .extensions import extensions, ENCAB
 
@@ -63,7 +61,7 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
         for candidate in ENCAB_FILE_CANDIDATES:
             if os.path.exists(candidate):
                 encab_file = candidate
-                source = f"Default location"
+                source = "Default location"
 
     if not encab_file:
         candidates = ", ".join(ENCAB_FILE_CANDIDATES)
@@ -278,8 +276,8 @@ def encab(
     except ValueError as e:
         print(f"Error in configuration: {str(e)}")
         exit(2)
-    except KeyboardInterrupt as e:
-        print(f"Encab was interrupted.")
+    except KeyboardInterrupt:
+        print("Encab was interrupted.")
         return
 
 

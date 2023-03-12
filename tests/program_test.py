@@ -1,20 +1,15 @@
-import io
 import unittest
 from logging import (
     Logger,
-    basicConfig,
     StreamHandler,
     Formatter,
-    DEBUG,
-    INFO,
     FATAL,
     getLogger,
 )
 
-from pprint import pprint
 from encab.config import ProgramConfig
+from encab.program_state import LoggingProgramObserver
 from encab.program import (
-    LoggingProgramObserver,
     ExecutionContext,
     Program,
     ProgramState,

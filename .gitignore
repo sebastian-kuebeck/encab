@@ -13,9 +13,9 @@
 .eggs/
 .pytest_cache/
 __pycache__
-.tox/
 .cache/
 .mypy_cache
+.ruff_cache
 build/
 docs/_build
 dist/

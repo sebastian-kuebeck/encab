@@ -1,5 +1,5 @@
 encab:
-    dry_run: false
+    dry_run: true
     debug: false
     halt_on_exit: false
     environment:
@@ -20,7 +20,6 @@ extensions:
     validation:
         enabled: true
         settings:
-            include: validation.yml
             variables:
                 secret_a:
                     required: true

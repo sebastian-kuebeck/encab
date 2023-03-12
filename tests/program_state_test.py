@@ -1,30 +1,21 @@
-import os
-import io
 import unittest
 
 from signal import SIGINT, SIGTERM
 
 from logging import (
     Logger,
-    basicConfig,
     StreamHandler,
     Formatter,
-    DEBUG,
-    INFO,
     FATAL,
     getLogger,
 )
 
-from pprint import pprint
 
-
-from typing import Optional, List, Tuple, Dict
+from typing import Optional, List
 from threading import Thread
 from subprocess import Popen, PIPE
 
-from encab.config import ProgramConfig
 from encab.program_state import (
-    ProgramObserver,
     LoggingProgramObserver,
     ProgramState,
     ProgramStateHandler,
@@ -59,7 +50,7 @@ class TestProgram(object):
             self._process.wait()
 
             self._state_handler.handle_exit(self._process.returncode, self.command)
-        except ProgramCanceledException as e:
+        except ProgramCanceledException:
             self._observer.on_cancel()
             self._state_handler.set(ProgramState.CANCELED)
         except BaseException as e:

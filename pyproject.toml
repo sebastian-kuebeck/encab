@@ -32,3 +32,6 @@ dependencies = [
 
 [project.scripts]
 encab = "encab.encab:encab"
+
+[tool.ruff]
+line-length = 120

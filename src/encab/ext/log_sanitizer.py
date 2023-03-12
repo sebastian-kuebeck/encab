@@ -2,7 +2,6 @@ import yaml
 import marshmallow_dataclass
 
 from fnmatch import fnmatch
-from io import TextIOBase
 from typing import Dict, Set, List, Any, Tuple, Optional
 from logging import Logger, Filter, getLogger
 from pluggy import HookimplMarker  # type: ignore

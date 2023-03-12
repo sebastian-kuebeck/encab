@@ -4,6 +4,7 @@ import marshmallow_dataclass
 
 from re import match, compile
 
+from abc import ABC, abstractmethod
 from typing import Dict, Set, List, Any, Optional, Union
 from logging import getLogger
 from pluggy import HookimplMarker  # type: ignore
@@ -76,7 +77,7 @@ class Validation(object):
 
     def _set_programs(self):
         if self.program and self.programs:
-            raise ConfigError(f"Expected either 'program' or 'programs' but got both.")
+            raise ConfigError("Expected either 'program' or 'programs' but got both.")
 
         self.programs = [self.program] if self.program else (self.programs or list())
 
@@ -196,6 +197,13 @@ class ValidationSettings(object):
             raise ConfigError(e.args)
 
     def include_validations(self) -> Dict[str, Validation]:
+        """
+        includes validations from an external yaml file
+
+        :raises ConfigError: if the validation file could not be loaded
+        :return: a dictionary of validations
+        :rtype: Dict[str, Validation]
+        """
         validations: Dict[str, Validation] = dict()
         if not self.include:
             return validations
@@ -235,9 +243,6 @@ class ValidationSettings(object):
 extension_impl = HookimplMarker(ENCAB)
 
 
-from abc import ABC, abstractmethod
-
-
 class VariableValidator(ABC):
     def __init__(self, name: str, validation: Validation) -> None:
         self.name = name
@@ -262,12 +267,12 @@ class FormatValidator(VariableValidator):
         elif format == "int":
             try:
                 int(value)
-            except:
+            except ValueError:
                 self.report_error("Expected integer format but was '{value}'")
         elif format == "float":
             try:
                 float(value)
-            except:
+            except ValueError:
                 self.report_error("Expected float format but was '{value}'")
         else:
             assert False, f"Unsupported format {format}."
@@ -283,7 +288,7 @@ class RangeValidator(VariableValidator):
 
         try:
             n = float(value)
-        except:
+        except ValueError:
             self.report_error(
                 "Expected to be float (as min_value and/or max_value was given)"
                 f" but was '{value}'"
@@ -380,8 +385,6 @@ class Validator(object):
             if value:
                 vars_set.add(name)
                 self.validate(program, name, value)
-
-        # mylogger.debug("Variables set so far: %s", str(vars_set), extra={"program": ENCAB})
 
         for name, validation in self.validations.items():
 

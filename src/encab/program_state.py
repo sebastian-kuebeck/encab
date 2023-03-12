@@ -1,19 +1,17 @@
-import sys
 import os
 
-from signal import SIGINT, SIGTERM
+from signal import SIGINT
 
-from io import IOBase
 from copy import deepcopy
 
-from typing import Dict, Optional, List, Tuple, Callable
+from typing import Dict, Optional, List, Callable
 from abc import ABC, abstractmethod
 
 from enum import IntEnum
 from subprocess import Popen
 from threading import Condition
 
-from logging import Logger, DEBUG, INFO, ERROR, getLogger, Formatter, StreamHandler
+from logging import Logger, INFO, ERROR
 
 from .config import ProgramConfig
 
@@ -264,7 +262,8 @@ class ProgramStateHandler(object):
         )
 
     def wait(self, timeout: float = 0) -> None:
-        canceled = lambda: self._state >= ProgramState.CANCELING
+        def canceled():
+            return self._state >= ProgramState.CANCELING
 
         with self._cond:
             if timeout == 0 or self._state >= ProgramState.STARTING:

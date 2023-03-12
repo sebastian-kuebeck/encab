@@ -1,24 +1,19 @@
-import io
 import unittest
 
 from typing import List, Dict, Tuple, Optional
 
 from logging import (
     Logger,
-    basicConfig,
     StreamHandler,
     Formatter,
-    DEBUG,
-    INFO,
     FATAL,
     getLogger,
 )
 
-from pprint import pprint
 from encab.config import ProgramConfig, EncabConfig
-from encab.program import LoggingProgramObserver, ProgramObserver, ExecutionContext
+from encab.program_state import LoggingProgramObserver
+from encab.program import ProgramObserver, ExecutionContext
 from encab.programs import Programs
-from time import sleep
 from queue import Queue
 
 

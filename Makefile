@@ -9,6 +9,7 @@ test: validate
 
 validate:
 	mypy --config-file mypy.ini -p encab -p tests
+	ruff src/ tests/
 
 format:
 	black src/encab/*.py src/encab/ext/*.py tests/*.py tests/ext/*.py
@@ -25,6 +26,3 @@ doc: apidoc html
 
 browse:
 	firefox docs/_build/html/index.html
-
-tox: 
-	tox
