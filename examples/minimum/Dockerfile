@@ -3,12 +3,10 @@ FROM python:3.10.8-slim-bullseye
 # --------------------------------------------
 # Install Encab 
 #
-ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
-
 ENV PATH=$PATH:/root/.local/bin
-RUN python3 -m pip install --user pipx
+ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 ADD ${ENCAB_WHEEL} .
-RUN python3 -m pipx install ./${ENCAB_WHEEL}
+RUN pip install ./${ENCAB_WHEEL} --user
 
 # -------------------------------------------
 # add configuration file

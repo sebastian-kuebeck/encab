@@ -43,7 +43,7 @@ class LogStream(object):
     def _run(self):
         try:
             for line in self.stream:
-                strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t\ ")
+                strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
                 self.logger.log(self.log_level, strline, extra=self.extra)
         except ValueError:
             pass  # stream was closed

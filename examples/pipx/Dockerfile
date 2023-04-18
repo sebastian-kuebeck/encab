@@ -1,16 +1,29 @@
 # Example Dockerfile
-FROM python:3.10.8-slim-bullseye
+FROM debian:bullseye
 
+# --------------------------------------------
+# Install pipx
+#
+RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
+    apt-get -q update && \
+    apt-get -y -q install pipx/bullseye-backports
+# --------------------------------------------
+# Install Encab 
+#
 ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 
-ENV PATH=$PATH:/root/.local/bin
-RUN python3 -m pip install --user pipx
 ADD ${ENCAB_WHEEL} .
+ENV PATH=$PATH:/root/.local/bin
+RUN pipx install ./${ENCAB_WHEEL}
 
-RUN python3 -m pipx install ./${ENCAB_WHEEL}
-
+# --------------------------------------------
+# Add app user
+# 
 RUN adduser runner --gecos "" --disabled-login
 
+# --------------------------------------------
+# Add encab config and entrypoint
+# 
 ADD encab.yml .
 
 ENTRYPOINT ["encab"]
