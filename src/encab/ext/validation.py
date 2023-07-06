@@ -49,9 +49,9 @@ class Validation(object):
 
     regex: Optional[str]
     """
-    If set, the value must match the `Regular expression`_ given.
+    If set, the value must match the [Regular expression]_ given.
     
-    .._`Regular expression`: https://docs.python.org/3/howto/regex.html
+    .._[Regular expression]: https://docs.python.org/3/howto/regex.html
     """
 
     program: Optional[str]
@@ -168,12 +168,14 @@ class ValidationSettings(object):
         example settings:
         
         .. code-block:: yaml
+        
             settings:
                 include: validation.yml
                     
         example file ``validation.yml``:
         
         .. code-block:: yaml
+        
             settings:
                 include: validation.yml
         
@@ -252,8 +254,8 @@ class VariableValidator(ABC):
     def validate(self, value: str):
         pass
 
-    def report_error(self, message: str):
-        raise ConfigError(
+    def report_error(self, message: str) -> ConfigError:
+        return ConfigError(
             f"{VALIDATION}: Validation for variable {self.name} failed: {message}."
         )
 
@@ -268,12 +270,12 @@ class FormatValidator(VariableValidator):
             try:
                 int(value)
             except ValueError:
-                self.report_error("Expected integer format but was '{value}'")
+                raise self.report_error("Expected integer format but was '{value}'")
         elif format == "float":
             try:
                 float(value)
             except ValueError:
-                self.report_error("Expected float format but was '{value}'")
+                raise self.report_error("Expected float format but was '{value}'")
         else:
             assert False, f"Unsupported format {format}."
 
@@ -289,16 +291,16 @@ class RangeValidator(VariableValidator):
         try:
             n = float(value)
         except ValueError:
-            self.report_error(
+            raise self.report_error(
                 "Expected to be float (as min_value and/or max_value was given)"
                 f" but was '{value}'"
             )
 
         if min_value and n < min_value:
-            self.report_error("Expected {self.name} >= {min_value} but was {n}")
+            raise self.report_error("Expected {self.name} >= {min_value} but was {n}")
 
         if max_value and n > max_value:
-            self.report_error(
+            raise self.report_error(
                 f"{VALIDATION}: Expected {self.name} <= {max_value} but was {n}"
             )
 
@@ -309,10 +311,14 @@ class LengthValidator(VariableValidator):
         max_length = self.validation.max_length
 
         if min_length and len(value) < min_length:
-            self.report_error(f"Expected length >= {min_length} but was {len(value)}")
+            raise self.report_error(
+                f"Expected length >= {min_length} but was {len(value)}"
+            )
 
         if max_length and len(value) > max_length:
-            self.report_error(f"Expected length <= {max_length} but was {len(value)}")
+            raise self.report_error(
+                f"Expected length <= {max_length} but was {len(value)}"
+            )
 
 
 class RegexValidator(VariableValidator):
@@ -320,7 +326,7 @@ class RegexValidator(VariableValidator):
         regex = self.validation.regex
 
         if regex and not match(regex, value):
-            self.report_error(f"Expected to match '{str(regex)}'")
+            raise self.report_error(f"Expected to match '{str(regex)}'")
 
 
 class CombinedValidator(VariableValidator):

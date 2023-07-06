@@ -123,6 +123,10 @@ class LogStream(object):
         thread.daemon = True
         self.thread = thread
         thread.start()
+        return self
+
+    def close(self):
+        self.stream.close()
 
 
 class StartupScript:
@@ -238,6 +242,8 @@ class StartupScript:
 
         extra = {"program": "startup_script/sh"}
 
+        out: Optional[LogStream] = None
+        err: Optional[LogStream] = None
         try:
             with Popen(
                 script, stdout=PIPE, stderr=PIPE, env=environment, shell=True
@@ -245,8 +251,8 @@ class StartupScript:
                 assert process.stderr
                 assert process.stdout
 
-                LogStream(mylogger, ERROR, process.stderr, extra).start()
-                LogStream(mylogger, INFO, process.stdout, extra).start()
+                err = LogStream(mylogger, ERROR, process.stderr, extra).start()
+                out = LogStream(mylogger, INFO, process.stdout, extra).start()
 
                 process.wait()
 
@@ -258,6 +264,11 @@ class StartupScript:
 
         except BaseException as e:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute startup script: {e}")
+        finally:
+            if out:
+                out.close()
+            if err:
+                err.close()
 
     def buildenv(self, environment: Dict[str, str]):
         """
@@ -282,6 +293,7 @@ class StartupScript:
 
         mylogger.info("Running buildenv script", extra={"program": ENCAB})
 
+        err: Optional[LogStream] = None
         lines: List[str] = list()
         try:
             with Popen(
@@ -290,7 +302,7 @@ class StartupScript:
                 assert process.stdout is not None
                 assert process.stderr is not None
 
-                LogStream(mylogger, ERROR, process.stderr, extra).start()
+                err = LogStream(mylogger, ERROR, process.stderr, extra).start()
 
                 for line in process.stdout:
                     strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
@@ -303,6 +315,9 @@ class StartupScript:
 
         except BaseException as e:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute buildenv script: {e}")
+        finally:
+            if err:
+                err.close()
 
         self.update_env(environment, stream=StringIO("\n".join(lines)))
 

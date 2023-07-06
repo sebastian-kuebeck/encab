@@ -1,5 +1,5 @@
 encab:
-    dry_run: true
+    dry_run: false
     debug: false
     halt_on_exit: false
     environment:
@@ -14,6 +14,8 @@ extensions:
     startup_script:
         enabled: true
         settings:
+            loadenv:
+                .env
             buildenv: 
                 - echo 'X=1' 
                 - echo 'Z=3'

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "encab"
 version = "0.0.1"
 authors = [
-  { name="Sebastian M.A. Kuebeck", email="sebastian.kuebeck@example.com" },
+  { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
 description = "Docker entypoint tool"
 readme = "README.md"
@@ -17,13 +17,13 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-  "PyYAML ~= 6.0",
-  "types-PyYAML~=6.0.12.2",
-  "marshmallow~=3.19.0",
-  "marshmallow-dataclass[enum,union]~=8.5.10",
-  "marshmallow-enum~=1.5.1",
-  "pluggy~=1.0.0",
-  "python-dotenv~=0.21.1"
+  "PyYAML >= 6.0, < 7",
+  "types-PyYAML >= 6.0.12.2, < 7",
+  "marshmallow >= 3.19.0, < 4",
+  "marshmallow-dataclass[enum,union] >= 8.5.10, < 9",
+  "marshmallow-enum >= 1.5.1, < 2",
+  "pluggy >= 1.0.0, < 2",
+  "python-dotenv >= 0.21.1, < 1"
 ]
 
 [project.urls]

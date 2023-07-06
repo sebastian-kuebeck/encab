@@ -1,88 +1,112 @@
 Examples
 ========
 
+Minimum Example
+---------------
 
-Python Virtualenv
------------------
+``Dockerfile``:
 
-Encab config ``encab.yaml``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml
-
-    programs:
-        sleep:
-            command: sleep 10
-        main:
-            user: runner
-            command: echo "Test"
-
-
-Docker file ``Dockerfile``
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: dockerfile
+.. code:: dockerfile
 
     FROM python:3.10.8-slim-bullseye
 
-    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
-
-    # --------------------------------------------
-    # Create virtual environment
-
-    ENV VIRTUAL_ENV=/opt/encabenv
-    RUN python3 -m venv $VIRTUAL_ENV
-    ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-    RUN pip install --upgrade pip
-
     # --------------------------------------------
     # Install Encab 
+    #
+    ENV PATH=$PATH:/root/.local/bin
+    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
+    ADD ${ENCAB_WHEEL} .
+    RUN pip install ./${ENCAB_WHEEL} --user
+
+    # -------------------------------------------
+    # add configuration file
+    #
+    ADD encab.yml .
+
+    # -------------------------------------------
+    # set encab as entrypoint
+    ENTRYPOINT ["encab"]
+
+``config.yml``:
+
+.. code:: yaml
+
+    programs:
+        main:
+            command: echo "Hello world!"
+
+Pipx Example
+------------
+
+`pipx <https://pypa.github.io/pipx/>`__ is a great tool to install Python tools in a non Python container.
+
+``Dockerfile``:
+
+.. code:: dockerfile
+
+    FROM debian:bullseye
+
+    # --------------------------------------------
+    # Install pipx
+    #
+    RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
+        apt-get -q update && \
+        apt-get -y -q install pipx/bullseye-backports
+    # --------------------------------------------
+    # Install Encab 
+    #
+    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 
     ADD ${ENCAB_WHEEL} .
-
-    RUN pip install ${ENCAB_WHEEL}
+    ENV PATH=$PATH:/root/.local/bin
+    RUN pipx install ./${ENCAB_WHEEL}
 
     # --------------------------------------------
     # Add app user
-
+    # 
     RUN adduser runner --gecos "" --disabled-login
 
     # --------------------------------------------
-    # Run encab
-
+    # Add encab config and entrypoint
+    # 
     ADD encab.yml .
 
     ENTRYPOINT ["encab"]
 
+As a general rule, appliactions inside a container should not run as root, 
+especially if they comunicate with the outside world.
 
+In this example, the script is run under a different user...
 
-Apache + Cron
--------------
+``config.yml``:
 
-Cron File ``hello-cron``
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block::
-
-    * * * * *   echo "Hello $(date)" > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1
-    #
-
-Encab config ``encab.yaml``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: yaml
+.. code:: yaml
 
     programs:
-    cron:
-        command: cron -f
-    main:
-        command: httpd-foreground
+        main:
+            user: runner
+            command: echo "Hello world!"
 
-Docker file ``Dockerfile``
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Apache + Cron Job Example
+-------------------------
 
-.. code-block:: dockerfile
+This example uses a Debian based Apache image and
+installs cron and tempreaper.
+`tempreaper <https://manpages.ubuntu.com/manpages/jammy/man8/tmpreaper.8.html>`__ is a tool 
+that removes temporary files on a regular basis. The tempreaper process itself is run by cron.
+
+In addition to tempreaper, we want add the following entry to crontab...
+
+
+``hello-cron``:
+
+.. code:: text
+
+    * * * * *   echo "Hello $(date)" > /proc/$(cat /var/run/crond.pid)/fd/1 2>&1
+
+``Dockerfile``:
+
+.. code:: dockerfile
 
     # see: https://hub.docker.com/_/httpd
     FROM httpd:2.4
@@ -93,16 +117,18 @@ Docker file ``Dockerfile``
     RUN apt-get -q update && apt-get -y -q install cron tmpreaper
 
     # --------------------------------------------
+    # Install pipx
+    #
+    RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
+        apt-get -q update && \
+        apt-get -y -q install pipx/bullseye-backports
+    # --------------------------------------------
     # Install Encab 
-    RUN apt-get -y -q install python3-pip python3-venv
-
     ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 
-    ENV PATH=$PATH:/root/.local/bin
-    RUN python3 -m pip install pipx --user 
     ADD ${ENCAB_WHEEL} .
-
-    RUN python3 -m pipx install ./${ENCAB_WHEEL}
+    ENV PATH=$PATH:/root/.local/bin
+    RUN pipx install ./${ENCAB_WHEEL}
 
     # --------------------------------------------
     # Set up cron job
@@ -116,3 +142,28 @@ Docker file ``Dockerfile``
     ADD encab.yml .
     ENTRYPOINT ["encab"]
 
+``config.yml``:
+
+.. code:: yaml
+
+    encab:
+        halt_on_exit: False
+        debug: False
+    programs:
+    cron:
+        command: cron -f
+    main:
+        command: httpd-foreground
+
+Output...
+
+.. code:: text
+
+    INFO  encab: encab 0.0.1
+    INFO  encab: Using configuration file ./encab.yml, source: Default location.
+    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+    ERROR main: [Wed May 24 12:39:55.123607 2023] [mpm_event:notice] [pid 12:tid 140407144078656] AH00489: Apache/2.4.54 (Unix) configured -- resuming normal operations
+    ERROR main: [Wed May 24 12:39:55.124088 2023] [core:notice] [pid 12:tid 140407144078656] AH00094: Command line: 'httpd -D FOREGROUND'
+    INFO  cron: Hello Wed May 24 12:40:01 UTC 2023
+    INFO  cron: Hello Wed May 24 12:41:01 UTC 2023

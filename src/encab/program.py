@@ -2,7 +2,7 @@ import sys
 
 from copy import deepcopy
 
-from typing import Dict, Optional, IO
+from typing import Dict, Optional, IO, Union, List
 
 from subprocess import Popen, PIPE
 from threading import Thread
@@ -65,6 +65,10 @@ class LogStream(object):
         thread.daemon = True
         self.thread = thread
         thread.start()
+        return self
+
+    def close(self):
+        self.stream.close()
 
 
 class ExecutionContext(object):
@@ -150,7 +154,7 @@ class Program(object):
         self._state_handler = ProgramStateHandler(observer)
         self._process: Optional[Popen] = None
 
-    def _run(self):
+    def _run(self) -> None:
         logger = self.logger
         extra = self.extra
         command = self.command
@@ -159,6 +163,8 @@ class Program(object):
         observer = self._observer
         startup_delay = self.config.startup_delay
         umask = self.config.umask
+        out: Optional[LogStream] = None
+        err: Optional[LogStream] = None
 
         try:
             assert isinstance(startup_delay, float) or isinstance(startup_delay, int)
@@ -170,11 +176,13 @@ class Program(object):
             state.set(ProgramState.STARTING)
 
             shell = self.shell
+            args: Union[str, List[str]] = command
+
             if shell:
-                command = command[0]
+                args = command[0]
 
             process = Popen(
-                command,
+                args,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=env,
@@ -191,8 +199,8 @@ class Program(object):
 
             observer.on_run(process.pid)
 
-            LogStream(logger, ERROR, process.stderr, extra).start()
-            LogStream(logger, INFO, process.stdout, extra).start()
+            err = LogStream(logger, ERROR, process.stderr, extra).start()
+            out = LogStream(logger, INFO, process.stdout, extra).start()
 
             process.wait()
             state.handle_exit(process.returncode, self.command)
@@ -204,6 +212,10 @@ class Program(object):
             state.set(ProgramState.CRASHED)
         finally:
             self._process = None
+            if out:
+                out.close()
+            if err:
+                err.close()
 
     def get_state(self) -> int:
         return self._state_handler.get()
