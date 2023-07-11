@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "encab"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
@@ -28,7 +28,7 @@ dependencies = [
 
 [project.urls]
 "Homepage" = "https://github.com/sebastian-kuebeck/encab"
-"Documentation" = "https://github.com/sebastian-kuebeck/encab"
+"Documentation" = "https://encab.readthedocs.io"
 "Bug Tracker" = "https://github.com/sebastian-kuebeck/encab"
 
 [project.scripts]

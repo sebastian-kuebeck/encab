@@ -1,6 +1,7 @@
-.PHONY:	dist test validate format apidoc html doc browse
+.PHONY:	dist test validate format apidoc html doc browse publish_test
 
 dist:
+	rm -rf dist/*
 	python -m build
 	rm -r src/encab.egg-info
 
@@ -26,3 +27,6 @@ doc: apidoc html
 
 browse:
 	firefox docs/_build/html/index.html
+
+publish_test:
+	twine upload -r testpypi dist/*
