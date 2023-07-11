@@ -30,3 +30,6 @@ browse:
 
 publish_test:
 	twine upload -r testpypi dist/*
+
+publish:
+	twine upload --repository pypi dist/*

@@ -1,6 +1,110 @@
 Installing
 ==========
 
+Install locally
+~~~~~~~~~~~~~~~
+
+1. Prerequisites
+
+-  activated Python virtual environment such as
+   `miniconda <https://docs.conda.io/en/latest/miniconda.html>`__ or
+   `virtualenv <https://virtualenv.pypa.io/en/latest/>`__,
+   Python Version 3.7 or higher.
+
+2. Create sample encab file `encab.yml`
+
+.. code:: yaml
+
+   encab:
+      dry_run: false
+   programs:
+      main:
+         sh:
+            - echo "Hello Encab!"
+
+3. Run locally:
+
+.. code:: sh
+
+   encab
+
+The result will be something like this:
+
+.. code:: text
+
+   INFO  encab: encab 0.0.3
+   INFO  encab: Using configuration file ./encab.yml, source: Default location.
+   INFO  main: Hello Encab!
+   INFO  main: Exited with rc: 0
+
+Install in Container
+~~~~~~~~~~~~~~~~~~~~
+
+1. Prerequisites
+
+-  `Docker <https://www.docker.com/>`__ from your Linux distribution or
+   Docker Desktop.
+
+2. Create sample encab file `encab.yml`
+
+.. code:: yaml
+
+   encab:
+      dry_run: false
+   programs:
+      main:
+         sh:
+            - echo "Hello Encab!"
+
+3. Add Encab to your `Dockerfile`.
+
+.. code:: dockerfile
+
+   FROM python:3.10.8-slim-bullseye
+   # --------------------------------------------
+   # Install Venv 
+   #
+   ENV VIRTUAL_ENV=/opt/encabenv
+   ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+   RUN python3 -m venv $VIRTUAL_ENV && \
+      pip install --upgrade pip
+   # --------------------------------------------
+   # Install Encab 
+   #
+   RUN pip install encab
+
+   # -------------------------------------------
+   # add configuration file
+   #
+   ADD encab.yml .
+
+   # -------------------------------------------
+   # set encab as entrypoint
+   ENTRYPOINT ["encab"]
+
+4. Build container
+
+.. code:: sh
+
+   docker build -t encab_minimum .
+
+
+1. Run container
+
+.. code:: sh
+
+   docker run encab_minimum
+
+Result:
+
+.. code:: text
+
+   INFO  encab: encab 0.0.3
+   INFO  encab: Using configuration file ./encab.yml, source: Default location.
+   INFO  main: Hello world!
+   INFO  main: Exited with rc: 0
+
+
 From Source
 ~~~~~~~~~~~
 
@@ -18,12 +122,13 @@ Prerequisites
    `miniconda <https://docs.conda.io/en/latest/miniconda.html>`__ or
    `virtualenv <https://virtualenv.pypa.io/en/latest/>`__
 
+
 Download
 ^^^^^^^^
 
 .. code:: sh
 
-      git clone https://github.com/skuebeck/encab.git
+      git clone https://github.com/sebastian-kuebeck/encab.git
       cd encab
       pip install -r requirements.txt
 
@@ -43,13 +148,16 @@ It’s named ``encab-<version>-py3-none-any.whl``
 Testing (optional)
 ^^^^^^^^^^^^^^^^^^
 
-run unit tests:
+Run unit tests:
 
 .. code:: sh
 
       make test
 
-run localy:
+Running
+^^^^^^^
+
+Run localy:
 
 .. code:: sh
 
@@ -60,7 +168,7 @@ like this:
 
 .. code:: text
 
-   INFO  encab: encab 0.0.1
+   INFO  encab: encab 0.0.3
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  encab: Dry run. No program will be started.
    INFO  encab: settings are valid.

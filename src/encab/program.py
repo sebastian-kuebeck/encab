@@ -68,6 +68,10 @@ class LogStream(object):
         return self
 
     def close(self):
+        try:
+            self.stream.flush()
+        except IOError:
+            pass
         self.stream.close()
 
 

@@ -3,7 +3,7 @@
 **Encab** is essentially a replacement for complex, hand-written Docker Container Entrypoint scripts,
 especially when dockerizing complex legacy applications.
 
-Add it as your [Dockerfile Entrypoint][1],
+1. Add it as your [Dockerfile Entrypoint][1],
 together with the encab configuration file `encab.yml`,
 
 ```dockerfile
@@ -14,7 +14,7 @@ together with the encab configuration file `encab.yml`,
 
 [1]: https://docs.docker.com/engine/reference/builder/#entrypoint
 
-define what you want to run in your container in `encab.yml`,
+2. Define what you want to run in your container in `encab.yml`,
 
 ```yaml
    programs:
@@ -28,7 +28,7 @@ and encab cares for the rest.
 Run it and you'll always know who's logging what...
 
 ```text
-   INFO  encab: encab 0.0.1
+   INFO  encab: encab 0.0.3
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
@@ -52,92 +52,87 @@ _**This tool is still under development. Sufficient for local experiments but no
 - simplify container debugging
 - load, build, validate environment variables
 
+## Documentation
+
+[Encab Documentation](https://encab.readthedocs.io)
+
 ## Installation
 
-### From Source
+### Install locally
 
-Encab is not yet at pypi so installation from source is the only option right now.
+#### Prerequisites
+
+- [Python](https://www.python.org/) Version >= 3.7
+- activated Python virtual environment such as [miniconda][2] or [virtualenv][3]
+
+```sh
+   pip install -U encab
+```
+
+#### Run locally
+
+1. Create sample encab file `encab.yml`
+
+```yml
+   encab:
+      dry_run: false
+   programs:
+      main:
+         sh:
+            - echo "Hello Encab!"
+```
+
+2. Run locally:
+
+```sh
+   encab
+```
+
+The result will be something like this:
+
+```text
+INFO  encab: encab 0.0.3
+INFO  encab: Using configuration file ./encab.yml, source: Default location.
+INFO  main: Hello Encab!
+INFO  main: Exited with rc: 0
+   ```
+
+### Install in Container
 
 #### Prerequisites
 
 - [Docker](https://www.docker.com/) from your Linux distribution or Docker Desktop.
-- [git](https://git-scm.com/) distributed version control system
-- [Python](https://www.python.org/) Version >= 3.7
-- activated Python virtual environment such as [miniconda][2] or [virtualenv][3]
 
-[2]: https://docs.conda.io/en/latest/miniconda.html
-[3]: https://virtualenv.pypa.io/en/latest/
+#### Run in Container
 
-#### Download
+1. Create sample encab file `encab.yml`
 
-```sh
-   git clone https://github.com/skuebeck/encab.git
-   cd encab
-   pip install -r requirements.txt
+```yml
+   encab:
+      dry_run: false
+   programs:
+      main:
+         sh:
+            - echo "Hello Encab!"
 ```
 
-#### Build Wheel
-
-```sh
-   make dist
-```
-
-If all goes well, the encab [wheel file](https://packaging.python.org/en/latest/tutorials/installing-packages/#source-distributions-vs-wheels) will be in the `dist` directory.
-
-It's named `encab-<version>-py3-none-any.whl`
-
-#### Testing (optional)
-
-run unit tests:
-
-```sh
-   make test
-```
-
-run localy:
-
-```sh
-   python -m encab
-```
-
-It'll use the sample `encab.yml` file.
-The result will be something like this:
-
-```text
-INFO  encab: encab 0.0.1
-INFO  encab: Using configuration file ./encab.yml, source: Default location.
-INFO  encab: Dry run. No program will be started.
-INFO  encab: settings are valid.
-INFO  encab: settings are valid.
-INFO  encab: settings are valid.
-INFO  encab: Dry run succeeded. Exiting.
-```
-
-## Deployment
-
-1. Copy the generated wheel file into your Docker project directory.
-2. Create a configuration file `encab.yml`(see Configuration section for details).
-
-   ```yaml
-      programs:
-         main:
-            sh: echo 'Hello World'
-   ```
-
-3. Add Encab to your [Docker file][4].
+2. Add Encab to your [Docker file][4].
 
    ```dockerfile
-   FROM python:3.10.8-slim-bullseye
 
+   FROM python:3.10.8-slim-bullseye
+   # --------------------------------------------
+   # Install Venv 
+   #
+   ENV VIRTUAL_ENV=/opt/encabenv
+   ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+   RUN python3 -m venv $VIRTUAL_ENV && \
+      pip install --upgrade pip
    # --------------------------------------------
    # Install Encab 
    #
-   ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
 
-   ENV PATH=$PATH:/root/.local/bin
-   RUN python3 -m pip install --user pipx
-   ADD ${ENCAB_WHEEL} .
-   RUN python3 -m pipx install ./${ENCAB_WHEEL}
+   RUN pip install encab
 
    # -------------------------------------------
    # add configuration file
@@ -147,17 +142,18 @@ INFO  encab: Dry run succeeded. Exiting.
    # -------------------------------------------
    # set encab as entrypoint
    ENTRYPOINT ["encab"]
+
    ```
 
    [4]: https://docs.docker.com/engine/reference/builder/
 
-4. Build container
+2. Build container
 
    ```sh
-   docker build --build-arg ENCAB_WHEEL=`ls encab-*.whl` -t encab_minimum .
+   docker build -t encab_minimum .
    ```
 
-5. Run container
+3. Run container
 
    ```sh
    docker run encab_minimum
@@ -166,7 +162,7 @@ INFO  encab: Dry run succeeded. Exiting.
    Result:
 
    ```text
-   INFO  encab: encab 0.0.1
+   INFO  encab: encab 0.0.3
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello world!
    INFO  main: Exited with rc: 0
