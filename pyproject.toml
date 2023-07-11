@@ -27,8 +27,9 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/skuebeck/encab"
-"Bug Tracker" = "https://github.com/skuebeck/encab"
+"Homepage" = "https://github.com/sebastian-kuebeck/encab"
+"Documentation" = "https://github.com/sebastian-kuebeck/encab"
+"Bug Tracker" = "https://github.com/sebastian-kuebeck/encab"
 
 [project.scripts]
 encab = "encab.encab:encab"
