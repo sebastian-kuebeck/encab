@@ -1,3 +1,6 @@
+#
+# Samle encab config for integration test
+#
 encab:
     dry_run: false
     debug: false

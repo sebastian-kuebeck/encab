@@ -1,5 +1,5 @@
 encab:
-  halt_on_exit: True
+  halt_on_exit: False
   debug: False
 programs:
   cron:

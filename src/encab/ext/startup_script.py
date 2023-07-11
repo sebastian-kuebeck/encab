@@ -53,8 +53,38 @@ class StartupScriptSettings(object):
     """
 
     loadenv: Optional[str]
+    """
+    the path of the file in dotenv format from which environment variables are loaded.
+    The format is similar to Bash files.
+    
+    Example:
+    
+    .. code-block:: bash
+    
+        FOO="first line"
+        BAR=2
+    
+    see: https://pypi.org/project/python-dotenv/
+    
+    """
+
     buildenv: Union[List[str], str, None]
+    """
+    executes a shell command that generates environment variables in dotenv format.
+    
+    Example:
+    
+    .. code-block:: yaml
+    
+        buildenv:
+        - echo "X=1"
+        - echo "Y=2"
+    """
+
     sh: Union[List[str], str, None]
+    """
+    executes a shell command before the programs specified in the programs section of the encab file are run
+    """
 
     def __post_init__(self):
         if isinstance(self.buildenv, str):
@@ -130,6 +160,12 @@ class LogStream(object):
 
 
 class StartupScript:
+    """
+    Run scripts before the actual programs are started.
+    In addition, environman variables can be loaded from a file or generated
+    using a script.
+    """
+
     def __init__(self) -> None:
         self.settings: Optional[StartupScriptSettings] = None
         self.executed = False

@@ -49,9 +49,8 @@ class Validation(object):
 
     regex: Optional[str]
     """
-    If set, the value must match the [Regular expression]_ given.
-    
-    .._[Regular expression]: https://docs.python.org/3/howto/regex.html
+    If set, the value must match the Regular expression given.
+    See https://docs.python.org/3/howto/regex.html. 
     """
 
     program: Optional[str]
@@ -176,8 +175,15 @@ class ValidationSettings(object):
         
         .. code-block:: yaml
         
-            settings:
-                include: validation.yml
+            X:
+                required: true
+                default: "1"
+                min_length: 1
+                max_length: 5
+                regex: "0|1"
+            Y:
+                min_value: 0
+                max_value: 10
         
     """
 
@@ -416,6 +422,11 @@ class Validator(object):
 
 
 class ValidationExtension(object):
+    """
+    Validates environment variables, sets default values and stops program execution if one or more variables
+    do not conform to the specification.
+    """
+
     def __init__(self) -> None:
         self.validator = Validator()
         self.enabled = True

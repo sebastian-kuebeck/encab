@@ -1,4 +1,4 @@
-.PHONY:	dist doc test validate tox
+.PHONY:	dist test validate format apidoc html doc browse
 
 dist:
 	python -m build

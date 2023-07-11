@@ -52,7 +52,7 @@ class LogSanitizerSettings(object):
     """
 
     override: Optional[bool]
-    """if True, builtin patterns are overriden """
+    """if True, builtin patterns are overridden """
 
     def __post_init__(self):
         self.patterns = self.patterns or list()
@@ -101,6 +101,35 @@ extension_impl = HookimplMarker(ENCAB)
 
 
 class LogSanitizerExtension(object):
+    """
+    Simple log sanitizer for environment variable values.
+    It looks for values of environment variables whose names match
+    certain patterns and replaces them with asterics.
+
+    Predefined patterns are:
+
+    - ``*KEY*``
+    - ``*SECRET*``
+    - ``*PASSWORD*``
+    - ``*PWD*``
+
+    For patterns, UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)
+    They can be extended or overriden in the extension settings.
+
+    Example:
+
+    Suppose you have the variable MY_PASSWORD set like this:
+
+    MY_PASSWORD=s3cR37
+
+    The name MY_PASSWORD matches the predifined pattern ``*PASSWORD*``,
+    so if you run a program like ``echo $MY_PASSWORD``,
+    the output will be raplaced by ``******``.
+
+    This extension is enabled by default and can be disabled in the extension settings.
+
+    """
+
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD", "*PWD*"]
 
     def __init__(self) -> None:

@@ -38,7 +38,7 @@ logging what…
       INFO  cron: Hello Wed Jan 18 09:48:01 UTC 2023
 
 It shares some similarities with
-`supervisord <http://supervisord.org/>`__ which I’ve used before I wrote
+`supervisord <http://supervisord.org/>`__ which I have used before I wrote
 encab but supervisord is a process controll system not designed to run
 in a Container environment.
 

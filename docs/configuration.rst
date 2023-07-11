@@ -25,17 +25,57 @@ All Variables are optional.
 Contents
 ~~~~~~~~
 
-``encab`` (Map, optional)
-^^^^^^^^^^^^^^^^^^^^^^^^^
+``encab``: Mapping (optional)
 
-Contains all static settings to start a program
+contains general settings as well as settings common to all programs, see **Encab Settings** for details. 
 
--  ``halt_on_exit``: bool, optional
+``extensions``: Mapping (optional)
+
+**Extension Settings**
+
+maps **Extention Names** to **Extension Settings**.
+
+There are two types of extension:
+
+- Built in extensions
+
+- External extensions
+
+Build in are identified by the **extension** name whereas 
+external extensions are identified by their **python module name**.
+
+Currently, there are the following build in Extensions:
+
+- ``log_satnitizer``
+- ``startup_script``
+- ``validation``
+
+see **Extension Settings** for details.
+
+``programs``: Mapping (Optional)
+
+maps **program names** to **Program Settings**, see **Program Settings** for details. 
+
+The program named ``main`` is the main program in the configuration. All
+other programs are started *before* ``main`` and ended *after* ``main``.
+
+The command in ``main`` can be overridden by command line arguments,
+where the first arguments represents the command name and the following
+its parameters.
+
+
+Encab Settings
+''''''''''''''
+
+General Settings
+^^^^^^^^^^^^^^^^
+
+-  ``halt_on_exit``: Boolean (optional)
 
    halt on exit: if ``true``, encab is halted after the main program
    ends. Default: ``false``
 
--  ``logformat``: string, optional
+-  ``logformat``: String (optional)
 
    Custom log format
    `link <https://docs.python.org/3/library/logging.html#logrecord-attributes>`__.
@@ -43,14 +83,15 @@ Contains all static settings to start a program
 
    Default: ``%(levelname)-5.5s %(program)s: %(message)s``
 
--  ``dry_run``: bool, optional
+-  ``dry_run``: Boolean (optional)
 
-   ``true``: the configuration is checked but no program is started
+   ``true``: the configuration is checked but no program is started.
    Default: ``false``
 
 Common config for encab and programs section
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
--  ``environment``: Map, optional
+-  ``environment``: Mapping (optional)
 
    additional environmment variables speciefied as a map.
 
@@ -62,23 +103,25 @@ Common config for encab and programs section
            PYTHONPATH: /opt/app
            PATH: /usr/bin:/usr/local/bin
 
--  ``debug``: Optional[bool] if true, encab logs debug information.
+-  ``debug``: Boolean (optional) if true, encab logs debug information.
    Default: false
 
--  ``loglevel``: Optional[Union[str, int]]
+-  ``loglevel``: Integer or String (optional)
 
    the log level. One of ``CRITICAL``, ``FATAL``, ``ERROR``, ``WARN``,
    ``WARNING``, ``INFO``, ``DEBUG``
 
--  ``umask``: Optional[Union[str, int]]
+-  ``umask``: Integer or String (optional)
 
    the
    `umask <https://pubs.opengroup.org/onlinepubs/9699919799/utilities/umask.html>`__,
    either as octal string (e.g. “077”) or integer
 
--  ``user``: Optional[Union[str, int]] the user id or user name
+-  ``user``: Integer or String (optional)
+   
+   the user id or user name
 
--  ``join_time``: Optional[float]
+-  ``join_time``: Floating point (optional)
 
    The join time is the time in seconds encab waits for a program to
    start/shutdown before it continues with the next. Default: 1 seconds.
@@ -95,39 +138,22 @@ Example:
        environment: # additional environment variables
            PYTHONPATH: /opt/app
 
-``extensions`` (Map, optional)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-maps **extension names** to **extension configurations**.
 
-There are two types of extension:
 
-- Built in extensions
+Extension Settings
+''''''''''''''''''
 
-- External extensions
-
-Build in are identified by the **extension** name whereas 
-external extensions are identified by their **python module name**.
-
-Currently, there are the following build in Extensions:
-
-- log_satnitizer
-- startup_script
-- validation
-
-Extension Configuration (Map, optional)
-'''''''''''''''''''''''''''''''''''''''
-
--  ``enabled``: Optional[bool] True: the extension is enabled
+-  ``enabled``: Boolean (optional) true: the extension is enabled
 
     Wether or not an extension is enabled by default is determined by the extension itself.
     For built in extensions, only the log_satnitizer extension is enabled by default.
 
--  ``module``: Optional[str] The extension module name
+-  ``module``: String (optional) The extension module name
 
     Specifies the python module name for external extension.
 
--  ``settings``: Optional[Dict[str, Any]] Map with extension specific settings
+-  ``settings``: Mapping (Optional) extension specific settings
 
 Example:
 
@@ -153,17 +179,10 @@ Example:
                    secret_a:
                        required: true
 
-``programs`` (Map, optional)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-maps **program names** to **program configurations**.
 
-The program named ``main`` is the main program in the configuration. All
-other programs are started *before* ``main`` and ended *after* ``main``.
-
-The command in ``main`` can be overridden by command line arguments,
-where the first arguments represents the command name and the following
-it’s parameters.
+Program Settings
+''''''''''''''''
 
 Example:
 
@@ -190,10 +209,10 @@ Output:
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
 
-Program Configuration (Map, optional)
-'''''''''''''''''''''''''''''''''''''
+Program Configuration
+'''''''''''''''''''''
 
--  ``command``: string or List of strings, optional
+-  ``command``: String or Sequence (optional)
 
    the command to be execution as list in POSIX style.
 
@@ -214,7 +233,7 @@ Program Configuration (Map, optional)
             - echo 
             - Test
 
--  ``sh``: string or List of strings, optional
+-  ``sh``: String or Sequence (optional)
 
    programs can also be run as a shell script instead of a command.
 
@@ -246,23 +265,23 @@ Program Configuration (Map, optional)
            PYTHONPATH: /opt/app
            PATH: /usr/bin:/usr/local/bin
 
--  ``debug``: bool, optional if true, encab logs debug information.
+-  ``debug``: Boolean (optional). If true, encab logs debug information.
    Default: false
 
--  ``loglevel``: string, optional
+-  ``loglevel``: String (optional)
 
    the log level. One of ``CRITICAL``, ``FATAL``, ``ERROR``, ``WARN``,
    ``WARNING``, ``INFO``, ``DEBUG``
 
--  ``umask``: int or string, optional
+-  ``umask``: Integer or String (optional)
 
    the
    `umask <https://pubs.opengroup.org/onlinepubs/9699919799/utilities/umask.html>`__,
    either as octal string (e.g. ``"077"``) or integer
 
--  ``user``: int or string, optional the user id or user name
+-  ``user``: Integer or String (optional), optional the user id or user name
 
--  ``join_time``: float, optional
+-  ``join_time``: Floating Point (optional)
 
    The join time is the time in seconds encab waits for a program to
    start/shutdown before it continues with the next. Default: 1 seconds.
