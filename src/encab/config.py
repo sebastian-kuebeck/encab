@@ -36,7 +36,7 @@ class AbstractConfig(ABC):
         :return: the data class
         :rtype: same as cls
         """
-        config_class = dataclass(cls, kw_only=True)  # type: ignore
+        config_class = dataclass(cls)  # type: ignore
         config_fields = fields(config_class)
         all_args = dict(args)
         for field in config_fields:

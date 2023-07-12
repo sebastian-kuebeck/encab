@@ -108,9 +108,6 @@ Result:
 From Source
 ~~~~~~~~~~~
 
-Encab is not yet at pypi so installation from source is the only option
-right now.
-
 Prerequisites
 ^^^^^^^^^^^^^
 
