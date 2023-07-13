@@ -9,7 +9,7 @@ Install locally
 -  activated Python virtual environment such as
    `miniconda <https://docs.conda.io/en/latest/miniconda.html>`__ or
    `virtualenv <https://virtualenv.pypa.io/en/latest/>`__,
-   Python Version 3.7 or higher.
+   Python Version 3.9 or higher.
 
 2. Create sample encab file `encab.yml`
 
@@ -32,7 +32,7 @@ The result will be something like this:
 
 .. code:: text
 
-   INFO  encab: encab 0.0.3
+   INFO  encab: encab 0.0.6
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello Encab!
    INFO  main: Exited with rc: 0
@@ -99,7 +99,7 @@ Result:
 
 .. code:: text
 
-   INFO  encab: encab 0.0.3
+   INFO  encab: encab 0.0.6
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello world!
    INFO  main: Exited with rc: 0
@@ -165,7 +165,7 @@ like this:
 
 .. code:: text
 
-   INFO  encab: encab 0.0.3
+   INFO  encab: encab 0.0.6
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  encab: Dry run. No program will be started.
    INFO  encab: settings are valid.
@@ -197,7 +197,7 @@ Deployment
       # --------------------------------------------
       # Install Encab 
       #
-      ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
+      ARG ENCAB_WHEEL=encab-0.0.6-py3-none-any.whl
 
       ENV PATH=$PATH:/root/.local/bin
       RUN python3 -m pip install --user pipx
@@ -229,7 +229,7 @@ Deployment
 
    .. code:: text
 
-      INFO  encab: encab 0.0.1
+      INFO  encab: encab 0.0.6
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Hello world!
       INFO  main: Exited with rc: 0

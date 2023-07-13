@@ -204,7 +204,7 @@ Output:
 
 .. code:: text
 
-      INFO  encab: encab 0.0.1
+      INFO  encab: encab 0.0.6
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
