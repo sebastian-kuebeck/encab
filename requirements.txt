@@ -16,6 +16,7 @@ black~=22.10.0
 # Validation
 mypy~=1.0.1
 ruff~=0.0.253
+pip_audit~=2.6.0
 
 # Documentation
 Sphinx~=5.3.0

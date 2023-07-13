@@ -1,9 +1,10 @@
-Encab: A Docker Entrypoint Tool
+Encab: A Simple Process Manager
 ===============================
 
-**Encab** is essentially a replacement for complex, hand-written Docker
-Container Entrypoint scripts, especially when dockerizing complex legacy
-applications.
+**Encab** is a process manager that simplifies running multiple services in a container or from the command line.
+
+It's essentially a replacement for complex, hand-written Docker Container Entrypoint scripts,
+especially when dockerizing complex legacy applications.
 
 Add it as your `Dockerfile Entrypoint <https://docs.docker.com/engine/reference/builder/#entrypoint>`__,
 together with the encab configuration file ``encab.yml``,

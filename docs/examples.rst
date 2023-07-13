@@ -14,9 +14,7 @@ Minimum Example
     # Install Encab 
     #
     ENV PATH=$PATH:/root/.local/bin
-    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
-    ADD ${ENCAB_WHEEL} .
-    RUN pip install ./${ENCAB_WHEEL} --user
+    RUN pip install encab --user
 
     # -------------------------------------------
     # add configuration file
@@ -55,11 +53,8 @@ Pipx Example
     # --------------------------------------------
     # Install Encab 
     #
-    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
-
-    ADD ${ENCAB_WHEEL} .
     ENV PATH=$PATH:/root/.local/bin
-    RUN pipx install ./${ENCAB_WHEEL}
+    RUN pipx install encab
 
     # --------------------------------------------
     # Add app user
@@ -124,11 +119,7 @@ In addition to tempreaper, we want add the following entry to crontab...
         apt-get -y -q install pipx/bullseye-backports
     # --------------------------------------------
     # Install Encab 
-    ARG ENCAB_WHEEL=encab-0.0.1-py3-none-any.whl
-
-    ADD ${ENCAB_WHEEL} .
-    ENV PATH=$PATH:/root/.local/bin
-    RUN pipx install ./${ENCAB_WHEEL}
+    RUN pipx install encab
 
     # --------------------------------------------
     # Set up cron job
@@ -150,10 +141,10 @@ In addition to tempreaper, we want add the following entry to crontab...
         halt_on_exit: False
         debug: False
     programs:
-    cron:
-        command: cron -f
-    main:
-        command: httpd-foreground
+        cron:
+            command: cron -f
+        main:
+            command: httpd-foreground
 
 Output...
 
