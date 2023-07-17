@@ -37,6 +37,7 @@ class Programs(object):
             if encab_config:
                 program_config.extend(encab_config)
                 program_config.set_user()
+                program_config.set_group()
 
             if name == "main":
                 if args:

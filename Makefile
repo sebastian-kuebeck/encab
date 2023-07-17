@@ -6,7 +6,7 @@ dist:
 	rm -r src/encab.egg-info
 
 test: validate
-	python -m unittest discover -p '*_test.py'
+	python -m unittest discover -v -p '*_test.py'
 
 validate:
 	mypy --config-file mypy.ini -p encab -p tests

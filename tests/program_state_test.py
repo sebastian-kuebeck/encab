@@ -14,6 +14,7 @@ from logging import (
 from typing import Optional, List
 from threading import Thread
 from subprocess import Popen, PIPE
+from encab.common.process import Process
 
 from encab.program_state import (
     LoggingProgramObserver,
@@ -37,19 +38,22 @@ class TestProgram(object):
 
         self._observer = observer.spawn(name, observer.logger, observer.extra)
         self._state_handler = ProgramStateHandler(observer)
-        self._process = None
+        self._process: Optional[Process] = None
 
     def _run(self):
         try:
             self._state_handler.wait(self.startup_delay)
             self._state_handler.set(ProgramState.STARTING)
-
-            self._process = Popen(self.command, stdout=PIPE, stderr=PIPE)
-            self._state_handler.set(ProgramState.RUNNING)
-            self._process.communicate()
-            self._process.wait()
-
-            self._state_handler.handle_exit(self._process.returncode, self.command)
+            
+            self._process = Process(self.command, dict())
+            
+            def exec(popen: Popen):
+                self._state_handler.set(ProgramState.RUNNING)
+                popen.communicate()
+                popen.wait()
+            
+            exit_code = self._process.execute(exec, None, PIPE, PIPE)
+            self._state_handler.handle_exit(exit_code, self.command)
         except ProgramCanceledException:
             self._observer.on_cancel()
             self._state_handler.set(ProgramState.CANCELED)
@@ -73,10 +77,10 @@ class TestProgram(object):
         return self._state_handler.join(timeout)
 
     def interrupt(self) -> ProgramState:
-        return self._state_handler.kill(self._process, SIGINT)  # type: ignore
+        return self._state_handler.signal(self._process, SIGINT)  # type: ignore
 
     def terminate(self) -> ProgramState:
-        return self._state_handler.kill(self._process, SIGTERM)  # type: ignore
+        return self._state_handler.signal(self._process, SIGTERM)  # type: ignore
 
     def join_wait(self, timeout: Optional[float] = None) -> ProgramState:
         return self._state_handler.join_wait(timeout)

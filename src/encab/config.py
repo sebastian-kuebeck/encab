@@ -5,7 +5,6 @@ import shlex
 import yaml
 import marshmallow_dataclass
 
-from pwd import getpwnam
 from yaml.error import YAMLError
 from typing import Dict, Optional, Union, List, Any
 from dataclasses import dataclass, fields
@@ -13,6 +12,7 @@ from marshmallow.exceptions import MarshmallowError, ValidationError
 from logging import DEBUG, INFO
 from abc import ABC
 
+from .common.process import getUserId, getGroupId
 
 class ConfigError(ValueError):
     """
@@ -68,6 +68,9 @@ class AbstractProgramConfig(AbstractConfig):
     user: Optional[Union[str, int]]
     """the user id or user name"""
 
+    group: Optional[Union[str, int]]
+    """the group id or group name"""
+
     join_time: Optional[float]
     """ 
     The join time is the time in seconds encab waits for a program to start/shutdown before 
@@ -113,7 +116,7 @@ class AbstractProgramConfig(AbstractConfig):
                 self.user = int(user)
             else:
                 try:
-                    self.user = getpwnam(user).pw_uid
+                    self.user = getUserId(user)
                 except KeyError:
                     raise ConfigError(f"Unknown user {user}")
 
@@ -121,6 +124,27 @@ class AbstractProgramConfig(AbstractConfig):
                 raise ConfigError(
                     "Encab has to run as root to run it or programs as different user"
                 )
+
+    def set_group(self):
+        """
+        sets the group that runs the program
+
+        steps:
+        - checks wether the group is set.
+        - determines the GID if the user is given as name.
+
+        :raises ConfigError: if the user is unknown or encab is not run as root when needed
+        """
+        group = self.group
+
+        if group:
+            if isinstance(group, int) or group.isnumeric():
+                self.group = int(group)
+            else:
+                try:
+                    self.group = getGroupId(group)
+                except KeyError:
+                    raise ConfigError(f"Unknown group {group}")
 
     def _set_log_level(self):
         """
@@ -267,15 +291,17 @@ class ProgramConfig(AbstractProgramConfig):
         .. code-block:: yaml
         
             program:
-                command:
-                    echo "Test"
+                main:
+                    command:
+                        echo "Test"
        
         .. code-block:: yaml
         
             program:
-                comand:     
-                    - echo 
-                    - Test
+                main:
+                    command:     
+                        - echo 
+                        - Test
     """
 
     sh: Union[str, List[str], None]

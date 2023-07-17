@@ -119,7 +119,11 @@ Common config for encab and programs section
 
 -  ``user``: Integer or String (optional)
    
-   the user id or user name
+   the user id or name
+
+-  ``group``: Integer or String (optional)
+   
+   the group id or name
 
 -  ``join_time``: Floating point (optional)
 
@@ -204,7 +208,7 @@ Output:
 
 .. code:: text
 
-      INFO  encab: encab 0.0.6
+      INFO  encab: encab 0.0.7
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
@@ -221,17 +225,19 @@ Program Configuration
    .. code:: yaml
 
       programs:
-         command:
-            echo "Test"
+         main:
+            command:
+               echo "Test"
 
    …is identical to…
 
    .. code:: yaml
 
       programs:
-         comand:     
-            - echo 
-            - Test
+         main:
+            command:     
+               - echo 
+               - Test
 
 -  ``sh``: String or Sequence (optional)
 
@@ -242,13 +248,19 @@ Program Configuration
    .. code:: yaml
 
       programs:
-         sh:
-            echo "Test"
+         main:
+            sh:
+               echo "Test"
 
    Run multiple shell commands in a program:
 
-   | \```yaml programs: sh:
-   | - echo “Test1” - echo “Test2”
+   .. code:: yaml
+
+      programs:
+         main:
+            sh:
+               - echo “Test1”
+               - echo “Test2”
 
 -  ``startup_delay``: float, optional The startup delay for this program
    in seconds. Default: 0 seconds

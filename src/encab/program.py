@@ -1,15 +1,14 @@
-import sys
-
 from copy import deepcopy
 
-from typing import Dict, Optional, IO, Union, List
+from typing import Dict, Optional,Union, List
 
-from subprocess import Popen, PIPE
+from subprocess import Popen
 from threading import Thread
 from signal import SIGINT, SIGTERM
 
-from logging import Logger, INFO, ERROR, getLogger
+from logging import Logger, getLogger
 
+from .common.process import Process
 from .config import ProgramConfig
 from .program_state import (
     ProgramObserver,
@@ -18,61 +17,6 @@ from .program_state import (
     ProgramCanceledException,
 )
 from .extensions import extensions
-
-
-class LogStream(object):
-    """
-    Reads from a stream in a background thread and loggs the result line by line
-    """
-
-    def __init__(
-        self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
-    ) -> None:
-        """
-        :param Logger logger: the logger to which the stream content is written
-        :param int log_level: the log level (see Python logging)
-        :param IOBase stream: the stream that is logged
-        :param Dict[str, str] extra: extra information that is logged each line (see Python logging)
-        """
-        self.logger = logger
-        self.log_level = log_level
-        self.stream = stream
-        self.extra = extra
-        self.thread: Optional[Thread] = None
-
-    def _run(self):
-        try:
-            for line in self.stream:
-                strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
-                self.logger.log(self.log_level, strline, extra=self.extra)
-        except ValueError:
-            pass  # stream was closed
-        except OSError:
-            self.logger.exception(
-                "I/O Error while logging: %s", self.name, extra=self.extra  # type: ignore
-            )
-        except:
-            self.logger.exception(
-                "Something went wrong while logging", extra=self.extra
-            )
-            raise
-
-    def start(self):
-        """starts reading and logging"""
-        program = self.extra.get("program", "")
-        name = f"{program}:{self.log_level}"
-        thread = Thread(target=lambda: self._run(), name=name)
-        thread.daemon = True
-        self.thread = thread
-        thread.start()
-        return self
-
-    def close(self):
-        try:
-            self.stream.flush()
-        except IOError:
-            pass
-        self.stream.close()
 
 
 class ExecutionContext(object):
@@ -156,19 +100,25 @@ class Program(object):
 
         self._observer = observer
         self._state_handler = ProgramStateHandler(observer)
-        self._process: Optional[Popen] = None
+        self._process: Optional[Process] = None
 
     def _run(self) -> None:
         logger = self.logger
         extra = self.extra
+
         command = self.command
         env = self.context.environment
         state = self._state_handler
         observer = self._observer
+
         startup_delay = self.config.startup_delay
+
         umask = self.config.umask
-        out: Optional[LogStream] = None
-        err: Optional[LogStream] = None
+        user = self.config.user
+        group = self.config.group
+
+        assert user is None or isinstance(user, int)
+        assert group is None or isinstance(group, int)
 
         try:
             assert isinstance(startup_delay, float) or isinstance(startup_delay, int)
@@ -185,41 +135,27 @@ class Program(object):
             if shell:
                 args = command[0]
 
-            process = Popen(
+            def on_run(popen: Popen):
+                state.set(ProgramState.RUNNING)
+                observer.on_run(popen.pid)
+
+            self._process = Process(
                 args,
-                stdout=PIPE,
-                stderr=PIPE,
-                env=env,
-                user=self.config.user,
+                env,
+                user=user,
+                group=group,
                 umask=umask,
                 shell=shell,
                 start_new_session=True,
             )
-            assert process.stdout is not None
-            assert process.stderr is not None
-
-            state.set(ProgramState.RUNNING)
-            self._process = process
-
-            observer.on_run(process.pid)
-
-            err = LogStream(logger, ERROR, process.stderr, extra).start()
-            out = LogStream(logger, INFO, process.stdout, extra).start()
-
-            process.wait()
-            state.handle_exit(process.returncode, self.command)
+            exit_code = self._process.execute_and_log(on_run, logger, extra)
+            state.handle_exit(exit_code, self.command)
         except ProgramCanceledException:
             observer.on_cancel()
             state.set(ProgramState.CANCELED)
         except BaseException as e:
             observer.on_crash(self.command, e)
             state.set(ProgramState.CRASHED)
-        finally:
-            self._process = None
-            if out:
-                out.close()
-            if err:
-                err.close()
 
     def get_state(self) -> int:
         return self._state_handler.get()
@@ -240,10 +176,10 @@ class Program(object):
         return self._state_handler.join(timeout)
 
     def interrupt(self) -> None:
-        return self._state_handler.kill(self._process, SIGINT)
+        return self._state_handler.signal(self._process, SIGINT)
 
     def terminate(self) -> None:
-        return self._state_handler.kill(self._process, SIGTERM)  # type: ignore
+        return self._state_handler.signal(self._process, SIGTERM)
 
     def join_wait(self, timeout: Optional[float] = None) -> ProgramState:
         return self._state_handler.join_wait(timeout)

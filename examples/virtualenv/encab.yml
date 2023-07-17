@@ -1,5 +1,5 @@
 encab:
-    debug: false
+    debug: true
 extensions:
     log_sanitizer:
         enabled: true
@@ -27,3 +27,5 @@ programs:
         debug: true
         sh: echo $X $Z
         user: runner
+        group: runners
+        umask: "770"

@@ -5,16 +5,17 @@ import yaml
 import marshmallow_dataclass
 
 from io import StringIO
-from typing import Dict, List, Any, Optional, Union, IO
-from logging import Logger, getLogger, INFO, ERROR
+from typing import Dict, List, Any, Optional, Union
+from logging import getLogger
 from pluggy import HookimplMarker  # type: ignore
 
 from dataclasses import dataclass
 from marshmallow.exceptions import MarshmallowError, ValidationError
 
 from dotenv import dotenv_values
-from threading import Thread
-from subprocess import Popen, PIPE
+from subprocess import Popen
+
+from encab.common.process import Process
 
 ENCAB = "encab"
 STARTUP_SCRIPT = "startup_script"
@@ -106,57 +107,6 @@ class StartupScriptSettings(object):
             raise ConfigError(f"\n\n{STARTUP_SCRIPT}:\n{msg}")
         except MarshmallowError as e:
             raise ConfigError(e.args)
-
-
-class LogStream(object):
-    """
-    Reads from a stream in a background thread and loggs the result line by line
-    """
-
-    def __init__(
-        self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
-    ) -> None:
-        """
-        :param Logger logger: the logger to which the stream content is written
-        :param int log_level: the log level (see Python logging)
-        :param IOBase stream: the stream that is logged
-        :param Dict[str, str] extra: extra information that is logged each line (see Python logging)
-        """
-        self.logger = logger
-        self.log_level = log_level
-        self.stream = stream
-        self.extra = extra
-        self.thread: Optional[Thread] = None
-
-    def _run(self):
-        try:
-            for line in self.stream:
-                strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
-                self.logger.log(self.log_level, strline, extra=self.extra)
-        except ValueError:
-            pass  # stream was closed
-        except OSError:
-            self.logger.exception(
-                "I/O Error while logging: %s", self.name, extra=self.extra  # type: ignore
-            )
-        except:
-            self.logger.exception(
-                "Something went wrong while logging", extra=self.extra
-            )
-            raise
-
-    def start(self):
-        """starts reading and logging"""
-        program = self.extra.get("program", "")
-        name = f"{program}:{self.log_level}"
-        thread = Thread(target=lambda: self._run(), name=name)
-        thread.daemon = True
-        self.thread = thread
-        thread.start()
-        return self
-
-    def close(self):
-        self.stream.close()
 
 
 class StartupScript:
@@ -278,33 +228,16 @@ class StartupScript:
 
         extra = {"program": "startup_script/sh"}
 
-        out: Optional[LogStream] = None
-        err: Optional[LogStream] = None
         try:
-            with Popen(
-                script, stdout=PIPE, stderr=PIPE, env=environment, shell=True
-            ) as process:
-                assert process.stderr
-                assert process.stdout
+            process = Process(script, environment, shell=True)
+            exit_code = process.execute_and_log(lambda _: None, mylogger, extra)
 
-                err = LogStream(mylogger, ERROR, process.stderr, extra).start()
-                out = LogStream(mylogger, INFO, process.stdout, extra).start()
-
-                process.wait()
-
-                exit_code = process.returncode
-                if exit_code != 0:
-                    raise IOError(
-                        f"{STARTUP_SCRIPT}: Startup script failed with exit code: {exit_code}"
-                    )
-
+            if exit_code != 0:
+                raise IOError(
+                    f"{STARTUP_SCRIPT}: Startup script failed with exit code: {exit_code}"
+                )
         except BaseException as e:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute startup script: {e}")
-        finally:
-            if out:
-                out.close()
-            if err:
-                err.close()
 
     def buildenv(self, environment: Dict[str, str]):
         """
@@ -329,31 +262,24 @@ class StartupScript:
 
         mylogger.info("Running buildenv script", extra={"program": ENCAB})
 
-        err: Optional[LogStream] = None
         lines: List[str] = list()
         try:
-            with Popen(
-                script, stderr=PIPE, stdout=PIPE, env=environment, shell=True
-            ) as process:
-                assert process.stdout is not None
-                assert process.stderr is not None
+            def read_lines(process: Popen):
+                assert process.stdout
+                with process.stdout as stdout:
+                    for line in stdout:
+                        strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
+                        lines.append(strline)
 
-                err = LogStream(mylogger, ERROR, process.stderr, extra).start()
+            process = Process(script, environment, shell=True)
 
-                for line in process.stdout:
-                    strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
-                    lines.append(strline)
+            exit_code = process.execute_and_log(read_lines, mylogger, extra, log_stdout=False)
 
-                process.wait()
-                exit_code = process.returncode
-                if exit_code != 0:
-                    raise IOError(f"Buildenv script failed with exit code: {exit_code}")
+            if exit_code != 0:
+                raise IOError(f"Buildenv script failed with exit code: {exit_code}")
 
         except BaseException as e:
             raise IOError(f"{STARTUP_SCRIPT}: Failed to execute buildenv script: {e}")
-        finally:
-            if err:
-                err.close()
 
         self.update_env(environment, stream=StringIO("\n".join(lines)))
 

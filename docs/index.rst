@@ -30,7 +30,7 @@ logging what…
 
 .. code:: text
 
-      INFO  encab: encab 0.0.6
+      INFO  encab: encab 0.0.7
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
       ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
@@ -91,5 +91,9 @@ Similar Projects
 -  `supervisord <http://supervisord.org/>`__
 -  `supervisord Github <https://github.com/Supervisor/supervisor>`__
 
+Further information
+-------------------
 
+- `Run multiple services in a container <https://docs.docker.com/config/containers/multi-service_container/>`__
+- `Can I run multiple programs in a Docker container? <https://stackoverflow.com/questions/19948149/can-i-run-multiple-programs-in-a-docker-container>`__
 

@@ -1,5 +1,3 @@
-import os
-
 from signal import SIGINT
 
 from copy import deepcopy
@@ -8,11 +6,11 @@ from typing import Dict, Optional, List, Callable
 from abc import ABC, abstractmethod
 
 from enum import IntEnum
-from subprocess import Popen
 from threading import Condition
 
 from logging import Logger, INFO, ERROR
 
+from .common.process import Process
 from .config import ProgramConfig
 
 
@@ -120,6 +118,9 @@ class LoggingProgramObserver(ProgramObserver):
 
         if config.user:
             self.logger.debug("User id: %d", config.user, extra=self.extra)
+            
+        if config.user:
+            self.logger.debug("Group id: %d", config.group, extra=self.extra)
 
         if config.umask:
             self.logger.debug(
@@ -298,7 +299,7 @@ class ProgramStateHandler(object):
             )
             self.set(ProgramState.CRASHED)
 
-    def kill(self, process: Optional[Popen], signal):
+    def signal(self, process: Optional[Process], signal):
         with self._cond:
             if self._state >= ProgramState.CANCELED:
                 return
@@ -307,16 +308,17 @@ class ProgramStateHandler(object):
                 self._state = ProgramState.CANCELING
             else:
                 self._state = ProgramState.STOPPING
-                pid = process.pid if process else None
-                if pid:
-                    if signal == SIGINT:
-                        self._observer.on_interrupt(pid)
-                    else:
-                        self._observer.on_terminate(pid)
+                if process:
+                    pid = process.pid()
+                    if pid:
+                        if signal == SIGINT:
+                            self._observer.on_interrupt(pid)
+                        else:
+                            self._observer.on_terminate(pid)
 
-                    try:
-                        os.kill(pid, signal)
-                    except ProcessLookupError:
-                        pass
+                        try:
+                            process.signal(signal)
+                        except ProcessLookupError:
+                            pass
 
             self._cond.notify_all()

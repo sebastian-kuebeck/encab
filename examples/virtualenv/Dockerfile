@@ -20,7 +20,9 @@ RUN pip install ${ENCAB_WHEEL}
 # --------------------------------------------
 # Add app user
 # 
+RUN addgroup runners
 RUN adduser runner --gecos "" --disabled-login
+RUN adduser runner runners
 
 # --------------------------------------------
 # Add encab config and entrypoint

@@ -14,6 +14,7 @@ from typing import Optional, List, Tuple, Dict
 from textwrap import shorten
 from threading import Event
 
+from .common.process import Process
 from .config import Config, ConfigError
 from .program_state import LoggingProgramObserver
 from .program import ExecutionContext
@@ -187,7 +188,7 @@ def encab(
 
         extra = {"program": ENCAB}
 
-        logger.info("encab 0.0.6", extra=extra)
+        logger.info("encab 0.0.7", extra=extra)
         logger.info("Using configuration %s", location, extra=extra)
 
         logger.debug(
@@ -209,12 +210,13 @@ def encab(
             return
 
         config.encab.set_user()
+        config.encab.set_group()
 
-        if config.encab.user:
-            os.setuid(int(config.encab.user))
+        assert config.encab.user is None or isinstance(config.encab.user, int)
+        assert config.encab.group is None or isinstance(config.encab.group, int)
+        assert config.encab.umask is None or isinstance(config.encab.umask, int)
 
-        if config.encab.umask and config.encab.umask != -1:
-            os.umask(int(config.encab.umask))
+        Process.update_current(config.encab.user, config.encab.group, config.encab.umask)
 
         program_config = config.programs or {}
 
