@@ -26,12 +26,13 @@ Contents
 ~~~~~~~~
 
 ``encab``: Mapping (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-contains general settings as well as settings common to all programs, see **Encab Settings** for details. 
+contains general settings as well as settings common to all programs, see `Encab Settings`_ 
+and `Common config for encab and programs section`_ for details. 
 
 ``extensions``: Mapping (optional)
-
-**Extension Settings**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 maps **Extention Names** to **Extension Settings**.
 
@@ -50,11 +51,13 @@ Currently, there are the following build in Extensions:
 - ``startup_script``
 - ``validation``
 
-see **Extension Settings** for details.
+See `Extension Settings`_ for details.
+
 
 ``programs``: Mapping (Optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-maps **program names** to **Program Settings**, see **Program Settings** for details. 
+maps **program names** to **Program Settings**, see `Program Settings`_ and `Common config for encab and programs section`_ for details. 
 
 The program named ``main`` is the main program in the configuration. All
 other programs are started *before* ``main`` and ended *after* ``main``.
@@ -63,12 +66,11 @@ The command in ``main`` can be overridden by command line arguments,
 where the first arguments represents the command name and the following
 its parameters.
 
-
 Encab Settings
-''''''''''''''
+^^^^^^^^^^^^^^^^
 
 General Settings
-^^^^^^^^^^^^^^^^
+''''''''''''''''
 
 -  ``halt_on_exit``: Boolean (optional)
 
@@ -89,7 +91,7 @@ General Settings
    Default: ``false``
 
 Common config for encab and programs section
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+''''''''''''''''''''''''''''''''''''''''''''
 
 -  ``environment``: Mapping (optional)
 
@@ -146,7 +148,7 @@ Example:
 
 
 Extension Settings
-''''''''''''''''''
+^^^^^^^^^^^^^^^^^^
 
 -  ``enabled``: Boolean (optional) true: the extension is enabled
 
@@ -186,7 +188,7 @@ Example:
 
 
 Program Settings
-''''''''''''''''
+^^^^^^^^^^^^^^^^
 
 Example:
 
