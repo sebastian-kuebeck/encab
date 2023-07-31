@@ -264,16 +264,21 @@ class StartupScript:
 
         lines: List[str] = list()
         try:
+
             def read_lines(process: Popen):
                 assert process.stdout
                 with process.stdout as stdout:
                     for line in stdout:
-                        strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
+                        strline = line.decode(sys.getdefaultencoding()).rstrip(
+                            "\r\n\t "
+                        )
                         lines.append(strline)
 
             process = Process(script, environment, shell=True)
 
-            exit_code = process.execute_and_log(read_lines, mylogger, extra, log_stdout=False)
+            exit_code = process.execute_and_log(
+                read_lines, mylogger, extra, log_stdout=False
+            )
 
             if exit_code != 0:
                 raise IOError(f"Buildenv script failed with exit code: {exit_code}")

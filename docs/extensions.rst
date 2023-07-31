@@ -13,7 +13,6 @@ log_sanitizer
     - ``*KEY*``
     - ``*SECRET*``
     - ``*PASSWORD*``
-    - ``*PWD*``
 
     For patterns, `UNIX file pattern rules <https://docs.python.org/3/library/fnmatch.html#module-fnmatch>`__ are used.
     They can be extended or overridden in the extension settings.
@@ -148,8 +147,7 @@ Example:
 
 .. code:: yaml
 
-    extensions:
-        include: "validation.yml"
+    validation:
         enabled: true
         settings:
             variables:

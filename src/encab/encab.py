@@ -3,7 +3,6 @@ import os
 import io
 
 from logging import (
-    Logger,
     getLogger,
     StreamHandler,
     Formatter,
@@ -99,7 +98,7 @@ def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, s
     return (config, f"file {encab_file}, source: {source}.")
 
 
-def set_up_logger(config: Config) -> Logger:
+def set_up_logger(config: Config):
     """
     Sets up the encab logger
 
@@ -128,7 +127,7 @@ def set_up_logger(config: Config) -> Logger:
     return logger
 
 
-def set_up_extensions(config: Config, logger: Logger, extra: Dict[str, str]):
+def set_up_extensions(config: Config, logger, extra: Dict[str, str]):
     """
     sets up and configures the extensions.
     In case of dry run, `encab.extensions.Extensions.validate_extension` instead of
@@ -188,7 +187,7 @@ def encab(
 
         extra = {"program": ENCAB}
 
-        logger.info("encab 0.0.7", extra=extra)
+        logger.info("encab 0.0.8", extra=extra)
         logger.info("Using configuration %s", location, extra=extra)
 
         logger.debug(
@@ -216,7 +215,9 @@ def encab(
         assert config.encab.group is None or isinstance(config.encab.group, int)
         assert config.encab.umask is None or isinstance(config.encab.umask, int)
 
-        Process.update_current(config.encab.user, config.encab.group, config.encab.umask)
+        Process.update_current(
+            config.encab.user, config.encab.group, config.encab.umask
+        )
 
         program_config = config.programs or {}
 

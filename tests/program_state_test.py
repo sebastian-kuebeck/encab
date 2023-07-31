@@ -44,14 +44,14 @@ class TestProgram(object):
         try:
             self._state_handler.wait(self.startup_delay)
             self._state_handler.set(ProgramState.STARTING)
-            
+
             self._process = Process(self.command, dict())
-            
+
             def exec(popen: Popen):
                 self._state_handler.set(ProgramState.RUNNING)
                 popen.communicate()
                 popen.wait()
-            
+
             exit_code = self._process.execute(exec, None, PIPE, PIPE)
             self._state_handler.handle_exit(exit_code, self.command)
         except ProgramCanceledException:

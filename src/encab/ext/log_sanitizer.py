@@ -111,7 +111,6 @@ class LogSanitizerExtension(object):
     - ``*KEY*``
     - ``*SECRET*``
     - ``*PASSWORD*``
-    - ``*PWD*``
 
     For patterns, UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)
     They can be extended or overriden in the extension settings.
@@ -130,7 +129,7 @@ class LogSanitizerExtension(object):
 
     """
 
-    PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD", "*PWD*"]
+    PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD"]
 
     def __init__(self) -> None:
         self.sensitive_strings: Set[str] = set()

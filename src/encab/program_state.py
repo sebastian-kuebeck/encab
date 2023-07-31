@@ -118,8 +118,8 @@ class LoggingProgramObserver(ProgramObserver):
 
         if config.user:
             self.logger.debug("User id: %d", config.user, extra=self.extra)
-            
-        if config.user:
+
+        if config.group:
             self.logger.debug("Group id: %d", config.group, extra=self.extra)
 
         if config.umask:

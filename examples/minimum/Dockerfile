@@ -4,7 +4,7 @@ FROM python:3.10.8-slim-bullseye
 # Install Encab 
 #
 ENV PATH=$PATH:/root/.local/bin
-ARG ENCAB_WHEEL=encab-0.0.7-py3-none-any.whl
+ARG ENCAB_WHEEL=encab-0.0.8-py3-none-any.whl
 ADD ${ENCAB_WHEEL} .
 RUN pip install ./${ENCAB_WHEEL} --user
 

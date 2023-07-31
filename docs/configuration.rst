@@ -210,7 +210,7 @@ Output:
 
 .. code:: text
 
-      INFO  encab: encab 0.0.7
+      INFO  encab: encab 0.0.8
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
@@ -294,6 +294,8 @@ Program Configuration
    either as octal string (e.g. ``"077"``) or integer
 
 -  ``user``: Integer or String (optional), optional the user id or user name
+
+-  ``directory``: String (optional), the directory the program is executed in
 
 -  ``join_time``: Floating Point (optional)
 

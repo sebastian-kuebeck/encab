@@ -51,6 +51,7 @@ class LogStream(object):
         thread.daemon = True
         self.thread = thread
         thread.start()
+        thread.join(0.01)
         return self
 
     def close(self):

@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from typing import Dict, Optional,Union, List
+from typing import Dict, Optional, Union, List
 
 from subprocess import Popen
 from threading import Thread
@@ -116,6 +116,7 @@ class Program(object):
         umask = self.config.umask
         user = self.config.user
         group = self.config.group
+        cwd = self.config.directory
 
         assert user is None or isinstance(user, int)
         assert group is None or isinstance(group, int)
@@ -147,6 +148,7 @@ class Program(object):
                 umask=umask,
                 shell=shell,
                 start_new_session=True,
+                cwd=cwd,
             )
             exit_code = self._process.execute_and_log(on_run, logger, extra)
             state.handle_exit(exit_code, self.command)

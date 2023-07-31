@@ -14,6 +14,7 @@ from abc import ABC
 
 from .common.process import getUserId, getGroupId
 
+
 class ConfigError(ValueError):
     """
     Configuration error
@@ -324,6 +325,9 @@ class ProgramConfig(AbstractProgramConfig):
     """
     startup_delay: Optional[float]
     """The startup delay for this program in seconds. Default: 0 seconds"""
+
+    directory: Optional[str]
+    """the directory where the program is executed"""
 
     def __post_init__(self):
         """

@@ -3,7 +3,7 @@
 #
 encab:
     dry_run: false
-    debug: false
+    debug: true
     halt_on_exit: false
     environment:
         secret_a: "1111"
@@ -40,6 +40,9 @@ programs:
     main:
         environment:
             secret_b: "9999"
+        directory: tests
         sh: 
             - echo $X $Z
             - echo $secret_b
+            - echo $PWD
+            - env

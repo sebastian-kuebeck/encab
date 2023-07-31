@@ -58,7 +58,8 @@ class Process(object):
                  group: Optional[int] = None, 
                  umask: Optional[int] = None, 
                  shell: bool=False,
-                 start_new_session: bool=True) -> None:
+                 start_new_session: bool=True,
+                 cwd: Optional[str] = None) -> None:
         self._args = args
         self._env = environment
         self._user = user
@@ -66,7 +67,8 @@ class Process(object):
         self._umask = umask
         self._shell = shell
         self._start_new_session = start_new_session
-        self._process: Optional[Popen] = None 
+        self._process: Optional[Popen] = None
+        self._cwd = cwd
         
     def execute(self, 
                 exec: Callable[[Popen], Any], 
@@ -93,7 +95,8 @@ class Process(object):
                 env=self._env,
                 preexec_fn=preexec_fn,
                 shell=self._shell,
-                start_new_session=self._start_new_session
+                start_new_session=self._start_new_session,
+                cwd=self._cwd
             )
         exec(self._process)
         self._process.wait()
@@ -115,6 +118,7 @@ class Process(object):
             
             if log_stdout:
                 streams.append(LogStream(logger, INFO, process.stdout, extra).start())
+
             exec(process)
 
         try:
