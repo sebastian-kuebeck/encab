@@ -64,8 +64,8 @@ _**This tool is still under development. Sufficient for local experiments but no
 
 #### Prerequisites
 
-- [Python](https://www.python.org/) Version >= 3.9
-- activated Python virtual environment such as [miniconda][2] or [virtualenv][3]
+- [Python](https://www.python.org/) Version >= 3.7
+- activated Python virtual environment such as [miniconda](https://docs.conda.io/en/latest/miniconda.html) or [virtualenv](https://virtualenv.pypa.io/en/latest/)
 
 ```sh
    pip install -U encab
@@ -110,12 +110,14 @@ INFO  main: Exited with rc: 0
 1. Create sample encab file `encab.yml`
 
 ```yml
+
    encab:
       dry_run: false
    programs:
       main:
          sh:
             - echo "Hello Encab!"
+
 ```
 
 2. Add Encab to your [Docker file][4].
@@ -149,13 +151,13 @@ INFO  main: Exited with rc: 0
 
    [4]: https://docs.docker.com/engine/reference/builder/
 
-2. Build container
+3. Build container
 
    ```sh
    docker build -t encab_minimum .
    ```
 
-3. Run container
+4. Run container
 
    ```sh
    docker run encab_minimum
