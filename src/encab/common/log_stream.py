@@ -10,7 +10,6 @@ class LogStream(object):
     """
     Reads from a stream in a background thread and loggs the result line by line
     """
-
     def __init__(
         self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
     ) -> None:
@@ -30,7 +29,7 @@ class LogStream(object):
         try:
             for line in self.stream:
                 strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
-                self.logger.log(self.log_level, strline, extra=self.extra)
+                self.logger.log(self.log_level, strline, extra=self.extra)   
         except ValueError:
             pass  # stream was closed
         except OSError:
@@ -51,12 +50,13 @@ class LogStream(object):
         thread.daemon = True
         self.thread = thread
         thread.start()
-        thread.join(0.01)
         return self
 
     def close(self):
         try:
             self.stream.flush()
+            if self.thread:
+                self.thread.join(0.1)
         except IOError:
             pass
         self.stream.close()

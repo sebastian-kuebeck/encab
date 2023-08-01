@@ -3,7 +3,7 @@
 #
 encab:
     dry_run: false
-    debug: true
+    debug: false
     halt_on_exit: false
     environment:
         secret_a: "1111"

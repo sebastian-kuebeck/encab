@@ -1,4 +1,5 @@
 import os
+import pwd
 
 from typing import Dict, Optional, Callable, Any, List, Union
 
@@ -37,15 +38,37 @@ def getUserId(name: str) -> int:
 
 
 class Process(object):
+    """
+    Wrapper for POpen that supports logging of stdout and stdin
+    """
+    
     @staticmethod
     def update_current(user: Optional[int] = None, 
                        group: Optional[int] = None, 
                        umask: Optional[int] = None):
-        if user:
-            os.setuid(user)
-            
+        """
+        sets the current process user, group and umask
+
+        :param user: the UID, defaults to None
+        :type user: Optional[int], optional
+        :param group: the GID, defaults to None
+        :type group: Optional[int], optional
+        :param umask: the mask, defaults to None
+        :type umask: Optional[int], optional
+        :raises ValueError: _description_
+        """
+        
         if group:
             os.setgid(group)
+            
+        if user and os.getuid() != user:
+            try:
+                user_data = pwd.getpwuid(user)
+            except KeyError as e:
+                raise ValueError(f"No passwd entry for user id: {user}", e)
+                       
+            os.initgroups(user_data.pw_name, user_data.pw_gid)
+            os.setuid(user)
 
         if umask and umask != -1:
             os.umask(umask)
@@ -78,14 +101,24 @@ class Process(object):
         uid = self._user
         gid = self._group
         umask = self._umask
-        
+
+        if uid and os.getuid() != uid:
+            try:
+                user_data = pwd.getpwuid(uid)
+            except KeyError as e:
+                raise ValueError(f"No passwd entry for user id: {uid}", e)
+            
         def preexec_fn():
             if gid:
                 os.setgid(gid)
-            if uid:
+                
+            if uid and user_data:
+                os.initgroups(user_data.pw_name, user_data.pw_gid)
                 os.setuid(uid)
+
             if umask and umask != -1:
                 os.umask(umask)
+
         
         self._process = Popen(
                 self._args,

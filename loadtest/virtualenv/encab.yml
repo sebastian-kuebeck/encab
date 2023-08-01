@@ -1,0 +1,13 @@
+encab:
+    debug: false
+extensions:
+    log_sanitizer:
+        enabled: true
+
+programs:
+    load:
+        command: python load.py
+        user: runner
+    main:
+        command: python load.py
+        user: runner
