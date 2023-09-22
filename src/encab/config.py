@@ -329,6 +329,13 @@ class ProgramConfig(AbstractProgramConfig):
     directory: Optional[str]
     """the directory where the program is executed"""
 
+    reap_zombies: Optional[bool]
+    """
+        True: Zombie processes are reaped automatically. Default: false
+    
+        see: https://en.wikipedia.org/wiki/Zombie_process
+    """
+
     def __post_init__(self):
         """
         validates fields and sets default values
@@ -352,6 +359,11 @@ class ProgramConfig(AbstractProgramConfig):
             self.sh = sh if isinstance(sh, str) else "; ".join(sh)
 
         self.startup_delay = self.startup_delay or 0
+
+        if self.reap_zombies and os.getuid() != 0:
+            raise ConfigError("Encab has to run as root if reap_zombies is set to True")
+
+        self.reap_zombies = self.reap_zombies or False
 
 
 @dataclass

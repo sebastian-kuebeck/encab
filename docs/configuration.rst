@@ -210,7 +210,7 @@ Output:
 
 .. code:: text
 
-      INFO  encab: encab 0.0.9
+      INFO  encab: encab 0.1.0
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
@@ -301,6 +301,12 @@ Program Configuration
 
    The join time is the time in seconds encab waits for a program to
    start/shutdown before it continues with the next. Default: 1 seconds.
+
+- ``reap_zombies``: bool (optional)
+  
+   ``true``: Zombie processes are reaped automatically. Default: ``false`` 
+   see: `Zombie Process <https://en.wikipedia.org/wiki/Zombie_process>`_.
+
 
 Example:
 

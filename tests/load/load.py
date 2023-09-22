@@ -11,4 +11,3 @@ while True:
     used = humanize.naturalsize(psutil.virtual_memory().used)
     print(f"{t}: CPU load {cpu} %, memory used: {used}", flush=True)
     time.sleep(0.01)
-    

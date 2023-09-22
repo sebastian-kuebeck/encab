@@ -2,6 +2,7 @@ from typing import Dict, Optional, List
 
 from .config import ProgramConfig, EncabConfig, ConfigError
 from .program import ExecutionContext, Program
+from .extensions import extensions
 
 
 class Programs(object):
@@ -67,7 +68,7 @@ class Programs(object):
             helper.start(helper.config.join_time)
 
     def stop_helpers(self):
-        for helper in reversed(self.helpers):
+        for helper in reversed(self.helpers):  # type: ignore
             helper.terminate()
 
         for helper in reversed(self.helpers):
@@ -85,6 +86,8 @@ class Programs(object):
         self.main.join_wait()
 
         self.stop_helpers()
+        extensions.programs_ended()
+        self.exit_code = self.main.exit_code
 
     def start(
         self,
@@ -102,6 +105,7 @@ class Programs(object):
         """
         self.main.terminate()
         self.stop_helpers()
+        extensions.programs_ended()
 
     def interrupt(self):
         """
@@ -109,3 +113,4 @@ class Programs(object):
         """
         self.main.interrupt()
         self.stop_helpers()
+        extensions.programs_ended()

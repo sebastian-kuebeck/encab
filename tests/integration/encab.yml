@@ -1,0 +1,46 @@
+encab:
+    debug: true
+extensions:
+    log_sanitizer:
+        enabled: true
+        settings:
+            override: false
+            patterns: 
+                - "*MAGIC*"
+    startup_script:
+        enabled: true
+        settings:
+            loadenv:
+                .env
+            buildenv: 
+                - echo 'Y=2' 
+                - echo 'Z=3'
+    validation:
+        enabled: true
+        settings:
+            variables:
+                X:
+                    required: true
+                Y:
+                    required: true
+                Z:
+                    required: true
+    log_collector:
+        enabled: true
+        settings:
+            sources:
+                load:
+                    path: load.log
+                    poll_interval: 0.5
+
+programs:
+    load:
+        command: python load.py
+    main:
+        user: runner
+        group: runners
+        umask: "0001"
+        reap_zombies: true
+        sh: 
+            - python -m unittest discover -v -p '*_itest.py'
+            - sleep 5

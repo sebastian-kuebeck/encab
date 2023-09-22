@@ -2,14 +2,16 @@ import sys
 
 from typing import Dict, Optional, IO
 
-from threading import Thread
+from threading import Thread, Event
 
 from logging import Logger
 
+
 class LogStream(object):
     """
-    Reads from a stream in a background thread and loggs the result line by line
+    Reads from a stream in a background thread and logs the result line by line
     """
+
     def __init__(
         self, logger: Logger, log_level: int, stream: IO[bytes], extra: Dict[str, str]
     ) -> None:
@@ -24,12 +26,13 @@ class LogStream(object):
         self.stream = stream
         self.extra = extra
         self.thread: Optional[Thread] = None
+        self._closed = Event()
 
     def _run(self):
         try:
             for line in self.stream:
                 strline = line.decode(sys.getdefaultencoding()).rstrip("\r\n\t ")
-                self.logger.log(self.log_level, strline, extra=self.extra)   
+                self.logger.log(self.log_level, strline, extra=self.extra)
         except ValueError:
             pass  # stream was closed
         except OSError:
@@ -41,6 +44,9 @@ class LogStream(object):
                 "Something went wrong while logging", extra=self.extra
             )
             raise
+        finally:
+            self.stream.close()
+            self._closed.set()
 
     def start(self):
         """starts reading and logging"""
@@ -52,11 +58,15 @@ class LogStream(object):
         thread.start()
         return self
 
-    def close(self):
+    def wait_close(self, wait_time: float = 1.0):
+        """
+        waits untill the stream closes or a timeout occurs
+
+        :param wait_time: timeout in seconds, defaults to 1.0
+        :type wait_time: float, optional
+        """
         try:
-            self.stream.flush()
             if self.thread:
-                self.thread.join(0.1)
+                self._closed.wait(wait_time)
         except IOError:
             pass
-        self.stream.close()

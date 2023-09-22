@@ -4,6 +4,14 @@ encab.ext package
 Submodules
 ----------
 
+encab.ext.log\_collector module
+-------------------------------
+
+.. automodule:: encab.ext.log_collector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 encab.ext.log\_sanitizer module
 -------------------------------
 

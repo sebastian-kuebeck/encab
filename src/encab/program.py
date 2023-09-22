@@ -101,6 +101,7 @@ class Program(object):
         self._observer = observer
         self._state_handler = ProgramStateHandler(observer)
         self._process: Optional[Process] = None
+        self.exit_code: Optional[int] = None
 
     def _run(self) -> None:
         logger = self.logger
@@ -117,9 +118,11 @@ class Program(object):
         user = self.config.user
         group = self.config.group
         cwd = self.config.directory
+        reap_zombies = self.config.reap_zombies
 
         assert user is None or isinstance(user, int)
         assert group is None or isinstance(group, int)
+        assert isinstance(reap_zombies, bool)
 
         try:
             assert isinstance(startup_delay, float) or isinstance(startup_delay, int)
@@ -149,9 +152,10 @@ class Program(object):
                 shell=shell,
                 start_new_session=True,
                 cwd=cwd,
+                reap_zombies=reap_zombies,
             )
-            exit_code = self._process.execute_and_log(on_run, logger, extra)
-            state.handle_exit(exit_code, self.command)
+            self.exit_code = self._process.execute_and_log(on_run, logger, extra)
+            state.handle_exit(self.exit_code, self.command)
         except ProgramCanceledException:
             observer.on_cancel()
             state.set(ProgramState.CANCELED)

@@ -41,7 +41,7 @@ class Extensions(object):
         self,
     ) -> None:
         self.plugin_manager = PluginManager(ENCAB)
-        self.plugin_manager.add_hookspecs(self)
+        self.plugin_manager.add_hookspecs(self.__class__)
         self.hook: Any = self.plugin_manager.hook
 
     @extension_method
@@ -129,6 +129,13 @@ class Extensions(object):
         :type logger: Logger
         """
         self.hook.update_logger(program_name=program_name, logger=logger)
+
+    @extension_method
+    def programs_ended(self):
+        """
+        programs_ended is called when all programs have ended
+        """
+        self.hook.programs_ended()
 
     def register(self, extensions: List[Any]) -> None:
         """

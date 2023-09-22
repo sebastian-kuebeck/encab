@@ -1,5 +1,5 @@
 #
-# Samle encab config for integration test
+# Samle encab config for manual tests
 #
 encab:
     dry_run: false
@@ -28,11 +28,17 @@ extensions:
             variables:
                 secret_a:
                     required: true
-
     tests:
-        module: tests.ext.test_module_extension 
+        module: tests.unit.ext.test_module_extension
         settings:
             foo: bar
+    log_collector:
+        enabled: true
+        settings:
+            sources:
+                todo:
+                    path: TODO.md
+
 
 programs:
     sleep:
@@ -46,3 +52,5 @@ programs:
             - echo $secret_b
             - echo $PWD
             - env
+            - echo "---- END -----"
+            - sleep 100

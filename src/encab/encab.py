@@ -14,6 +14,15 @@ from textwrap import shorten
 from threading import Event
 
 from .common.process import Process
+from .common.exit_codes import (
+    EX_OK,
+    EX_CONFIG_ERROR,
+    EX_IOERROR,
+    EX_INSUFFICIENT_PERMISSIONS,
+    EX_UNKNOWN_RC,
+    EX_INTERRUPTED,
+    EX_TERMINATED,
+)
 from .config import Config, ConfigError
 from .program_state import LoggingProgramObserver
 from .program import ExecutionContext
@@ -23,6 +32,7 @@ from .extensions import extensions, ENCAB
 from .ext.log_sanitizer import LogSanitizerExtension
 from .ext.validation import ValidationExtension
 from .ext.startup_script import StarupScriptExtension
+from .ext.log_collector import LogCollectorExtension
 
 
 def load_config(encab_stream: Optional[io.TextIOBase] = None) -> Tuple[Config, str]:
@@ -176,7 +186,12 @@ def encab(
     """
 
     extensions.register(
-        [StarupScriptExtension(), LogSanitizerExtension(), ValidationExtension()]
+        [
+            StarupScriptExtension(),
+            LogSanitizerExtension(),
+            ValidationExtension(),
+            LogCollectorExtension(),
+        ]
     )
 
     logger = None
@@ -187,7 +202,7 @@ def encab(
 
         extra = {"program": ENCAB}
 
-        logger.info("encab 0.0.9", extra=extra)
+        logger.info("encab 0.1.0", extra=extra)
         logger.info("Using configuration %s", location, extra=extra)
 
         logger.debug(
@@ -246,11 +261,11 @@ def encab(
             if signal == SIGINT:
                 programs.interrupt()
                 logger.info("Programs interrupted. Exiting.", extra=extra)
+                exit(EX_INTERRUPTED)
             else:
                 programs.terminate()
                 logger.info("Programs terminated. Exiting.", extra=extra)
-
-            exit(0)
+                exit(EX_TERMINATED)
 
         sigint_handler = getsignal(SIGINT)
         sigterm_handler = getsignal(SIGTERM)
@@ -267,21 +282,23 @@ def encab(
             Event().wait()
         else:
             logger.debug("Programs ended. Exiting.", extra=extra)
+
+        exit(programs.exit_code if programs.exit_code is not None else EX_UNKNOWN_RC)
     except PermissionError as e:
         print(
             f"Failed to set the encab user: {str(e)}."
             " \nTo set the user, you have to run encab as root."
         )
-        exit(3)
+        exit(EX_INSUFFICIENT_PERMISSIONS)
     except IOError as e:
         print(f"I/O Error: {str(e)}")
-        exit(1)
+        exit((EX_IOERROR))
     except ValueError as e:
         print(f"Error in configuration: {str(e)}")
-        exit(2)
+        exit(EX_CONFIG_ERROR)
     except KeyboardInterrupt:
         print("Encab was interrupted.")
-        return
+        exit(EX_OK)
 
 
 if __name__ == "__main__":

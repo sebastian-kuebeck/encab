@@ -231,11 +231,90 @@ If set, the value must match the `Regular expression <https://docs.python.org/3/
 
 ``program``: String (optional)
 
-    Validation is limited to the given program. Default: no limitation.
+Validation is limited to the given program. Default: no limitation.
 
-    Use ``programs`` if validation should be limited to multiple programs.
+Use ``programs`` if validation should be limited to multiple programs.
 
-``programs``: Sequence (Optional)
+``programs``: Sequence (optional)
 
 Validation is limited to the given programs. Default: no limitation.
+
+log_collector
+-------------
+
+Reads log files (regular files and FIFOs) and logs the output to ``stdout``, the same way as program output is handled.
+The mechanism is similar to the `UNIX tail command <https://en.wikipedia.org/wiki/Tail_(Unix)>`_  with option ``-f`` but a bit more flexible
+in that it supports rotating file names (a new log file is created every day with the date encoded in its name).
+
+example settings:
+
+.. code-block:: yaml
+
+    encab:
+        debug: true
+        halt_on_exit: False
+    extensions:
+        log_collector:
+            enabled: true
+            settings:
+                sources:
+                    error_log:
+                        file: ./error.log
+
+Parameters
+^^^^^^^^^^
+
+``sources``: Mapping (optional)
+
+maps **source names** to **Source Specifications**, see **Source Specification** for details.
+
+Source Specification
+^^^^^^^^^^^^^^^^^^^^
+
+A source refers to a file, a FIFO or a file pattern that changes with time.
+
+``path``: string (optional)
+
+The path of the log file
+
+``path_pattern``: string (optional)
+
+The path pattern of the log file
+
+- ``%(<name>)e`` inserts the value of the environment variable with name <name>
+
+- ``%(<dateformat>)d`` inserts the current time with <dateformat> as python date format
+  
+    see `strftime() and strptime() Format Codes <https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes>`_
+
+- a literal ``%`` must be masked with ``%%``
+
+- examples:
+
+  * ``%(HOME)e/path`` -> ``"/home/user/path"``
+  * ``error-%(%y%m%d)d.log`` -> ``error-20230103.log``
+  * ``a%%b.log" -> "a%b.log``
+
+
+``offset``: int (optional)
+
+The initial read offset, defaults to 0
+    
+- -1 : Start at the beginning of the file
+-  0 : Start at the end of the file
+-  n > 0 : Start n characters before the end of the file
+
+
+``level``: string or int (optional)
+
+The log level that is used to log the file content. Defaults to ``INFO``.
+One of ``CRITICAL``, ``FATAL``, ``ERROR``, ``WARN``,
+``WARNING``, ``INFO``, ``DEBUG``
+
+``poll_interval``: float (optional)
+
+When the source file does not exist yet or the source file is a regular file and its contents has already been logged, 
+the plugin waits until there is new data available. The poll interval (unit seconds) defines the intervall 
+between the tomes when the plugin looks for new content.
+
 

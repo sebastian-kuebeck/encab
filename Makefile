@@ -5,8 +5,15 @@ dist:
 	python -m build
 	rm -r src/encab.egg-info
 
-test: validate
-	python -m unittest discover -v -p '*_test.py'
+test:
+	python -m unittest discover -v -s tests/unit -p '*_test.py'
+	python -m unittest discover -v -s tests/unit/ext -p '*_test.py'
+
+integration_test:
+	cd tests/integration && make test
+
+load_test:
+	cd tests/load && make test
 
 validate:
 	mypy --config-file mypy.ini -p encab -p tests
@@ -16,7 +23,7 @@ audit:
 	pip-audit -r requirements.txt
 
 format:
-	black src/encab/*.py src/encab/ext/*.py tests/*.py tests/ext/*.py
+	black src/encab/*.py src/encab/common/*.py src/encab/ext/*.py tests/unit/*.py tests/unit/ext/*.py tests/integration/*.py tests/load/*.py 
 
 apidoc:
 	rm -f docs/encab.rst docs/encab.ext.rst docs/modules.rst
@@ -28,7 +35,7 @@ html:
 
 doc: apidoc html
 
-browse:
+browse_doc:
 	firefox docs/_build/html/index.html
 
 publish_test: dist
