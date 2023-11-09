@@ -42,10 +42,6 @@ Run it and you'll always know who's logging what...
 It shares some similarities with [supervisord](http://supervisord.org/) which I've used before I wrote encab but
 supervisord is a process controll system not designed to run in a Container environment.
 
-## Note
-
-_**This tool is still under development. Sufficient for local experiments but not mature enough for production use!**_
-
 ## Features
 
 - run multiple programs in a container at a time with transparent logging
