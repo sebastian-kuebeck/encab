@@ -28,7 +28,7 @@ RUN adduser runner runners
 #
 ADD *_itest.py ./
 ADD load.py .
-ADD .env .
+ADD dotenv .env
 
 # --------------------------------------------
 # Add encab config and entrypoint

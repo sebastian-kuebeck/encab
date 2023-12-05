@@ -1,5 +1,5 @@
 encab:
-    debug: true
+    debug: false
 extensions:
     log_sanitizer:
         enabled: true
@@ -43,4 +43,4 @@ programs:
         reap_zombies: true
         sh: 
             - python -m unittest discover -v -p '*_itest.py'
-            - sleep 5
+            - sleep 1

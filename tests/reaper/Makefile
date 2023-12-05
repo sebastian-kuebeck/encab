@@ -7,8 +7,8 @@ dist:
 	cp ../../dist/encab-*.whl .
 
 build: dist
-	docker build --build-arg ENCAB_WHEEL=`ls encab-*.whl` -t encab_venv .
+	docker build --build-arg ENCAB_WHEEL=`ls encab-*.whl` -t encab_reaper .
 	rm encab-*.whl
 
-run:
-	docker run encab_venv
+test: build
+	docker run encab_reaper

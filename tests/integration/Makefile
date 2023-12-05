@@ -1,6 +1,7 @@
 .PHONY: dist build run
 
 dist:
+	rm -f encab-*.whl
 	cd ../.. && python -m build
 	rm -r ../../src/encab.egg-info
 	cp ../../dist/encab-*.whl .
@@ -10,4 +11,4 @@ build: dist
 	rm encab-*.whl
 
 test: build
-	docker run encab_integhration
+	docker run encab_integration

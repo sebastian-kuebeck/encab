@@ -1,0 +1,20 @@
+encab:
+    debug: false
+programs:
+    meter:
+        sh: python meter.py
+    top:
+        sh: while true; do ps -ax; sleep 2; done
+    main:
+        user: runner
+        group: runners
+        umask: "0001"
+        reap_zombies: true
+        join_time: 10
+        sh: 
+            - while true
+            - do echo "Defunct processes..."
+            - python zombie_generator.py
+            - echo "No defunct processes..."
+            - sleep 2
+            - done

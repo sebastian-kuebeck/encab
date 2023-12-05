@@ -1,25 +1,36 @@
 # Example Dockerfile
-FROM debian:bullseye
+FROM python:3.10.8-slim-bullseye
+
+RUN apt-get -y -q update && apt-get install -y -q procps
 
 # --------------------------------------------
-# Install pipx
+# Install Venv 
 #
-RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
-    apt-get -q update && \
-    apt-get -y -q install pipx/bullseye-backports
+ENV VIRTUAL_ENV=/opt/encabenv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN python3 -m venv $VIRTUAL_ENV && \ 
+    pip install --upgrade pip
+
 # --------------------------------------------
 # Install Encab 
 #
 ARG ENCAB_WHEEL=encab-0.1.1-py3-none-any.whl
 
 ADD ${ENCAB_WHEEL} .
-ENV PATH=$PATH:/root/.local/bin
-RUN pipx install ./${ENCAB_WHEEL}
+RUN pip install ${ENCAB_WHEEL} psutil humanize
 
 # --------------------------------------------
 # Add app user
 # 
+RUN addgroup runners
 RUN adduser runner --gecos "" --disabled-login
+RUN adduser runner runners
+
+#
+# Add generator
+#
+ADD zombie_generator.py .
+ADD meter.py .
 
 # --------------------------------------------
 # Add encab config and entrypoint
