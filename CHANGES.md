@@ -1,5 +1,8 @@
 # Changes
 
+## 0.1.2 (2024-04-24)
+- Updated dependencies
+
 ## 0.1.1 (2023-09-22)
 - Reduced zombie process reaping CPU load
 - Fixed integration test

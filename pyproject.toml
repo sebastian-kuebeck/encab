@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "encab"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
@@ -23,7 +23,7 @@ dependencies = [
   "marshmallow-dataclass[enum,union] >= 8.5.10, < 9",
   "marshmallow-enum >= 1.5.1, < 2",
   "pluggy >= 1.0.0, < 2",
-  "python-dotenv >= 0.21.1, < 1"
+  "python-dotenv >= 0.21.1, < 2"
 ]
 
 [project.urls]

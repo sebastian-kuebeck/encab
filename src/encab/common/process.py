@@ -1,6 +1,5 @@
 import os
 import pwd
-import time
 
 from typing import Dict, Optional, Callable, Any, List, Union
 
@@ -147,7 +146,7 @@ class Process(object):
         child_process_pid = self._process.pid
 
         while True:
-            current_pid, status = os.waitpid(-child_process_pid, os.WUNTRACED) 
+            current_pid, status = os.waitpid(-child_process_pid, os.WUNTRACED)
             if current_pid == -1:
                 logger.debug("No child to wait", extra=extra)
                 return EX_NOCHILD

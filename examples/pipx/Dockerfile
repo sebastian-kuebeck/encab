@@ -10,7 +10,7 @@ RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/s
 # --------------------------------------------
 # Install Encab 
 #
-ARG ENCAB_WHEEL=encab-0.1.1-py3-none-any.whl
+ARG ENCAB_WHEEL=encab-0.1.2-py3-none-any.whl
 
 ADD ${ENCAB_WHEEL} .
 ENV PATH=$PATH:/root/.local/bin

@@ -17,7 +17,7 @@ load_test:
 
 validate:
 	mypy --config-file mypy.ini -p encab -p tests
-	ruff src/ tests/
+	ruff check src/ tests/
 
 audit:
 	pip-audit -r requirements.txt
