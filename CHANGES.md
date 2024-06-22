@@ -1,5 +1,9 @@
 # Changes
 
+## 0.1.3 (2024-06-24)
+- Updated dependencies
+- Added Python 3.12 test coverage
+
 ## 0.1.2 (2024-04-24)
 - Updated dependencies
 

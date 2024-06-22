@@ -1,8 +1,8 @@
 # Runtime
 PyYAML~=6.0.1 
 types-PyYAML~=6.0.12.20240311
-marshmallow~=3.21.1
-marshmallow-dataclass[enum,union]~=8.5.10
+marshmallow~=3.21.3
+marshmallow-dataclass[enum,union]~=8.6.1
 marshmallow-enum~=1.5.1
 pluggy~=1.5.0
 python-dotenv~=1.0.1
@@ -11,18 +11,18 @@ python-dotenv~=1.0.1
 build~=0.9.0
 
 # Formatting
-black~=24.4.0
+black~=24.4.2
 
 # Validation
 mypy~=1.10.0
-ruff~=0.4.1
-pip_audit~=2.6.0
+ruff~=0.4.10
+pip_audit~=2.7.3
 psutil~=5.9.8
 types-psutil~=5.9.5.20240423
 
 #Testing
 humanize~=4.9.0
-tox~=4.14.2
+tox~=4.15.1
 
 # Documentation
 Sphinx~=5.3.0

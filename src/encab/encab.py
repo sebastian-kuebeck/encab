@@ -202,7 +202,7 @@ def encab(
 
         extra = {"program": ENCAB}
 
-        logger.info("encab 0.1.2", extra=extra)
+        logger.info("encab 0.1.3", extra=extra)
         logger.info("Using configuration %s", location, extra=extra)
 
         logger.debug(

@@ -18,7 +18,7 @@ copyright = '2023, 2024 Sebastian Kuebeck'
 author = 'Sebastian Kuebeck'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.2'
+release = '0.1.3'
 
 
 # -- General configuration ---------------------------------------------------
