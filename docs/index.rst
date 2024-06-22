@@ -89,9 +89,9 @@ Similar Projects
 ----------------
 
 - `supervisord <http://supervisord.org/>`__
-- `Circus<https://github.com/circus-tent/circus>`__
-- `s6<https://github.com/just-containers/s6-overlay>`__
-- `docker systemctl replacement<https://github.com/gdraheim/docker-systemctl-replacement>`__
+- `Circus <https://github.com/circus-tent/circus>`__
+- `s6 <https://github.com/just-containers/s6-overlay>`__
+- `docker systemctl replacement <https://github.com/gdraheim/docker-systemctl-replacement>`__
 
 Further information
 -------------------
