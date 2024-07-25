@@ -275,10 +275,10 @@ class LogCollector(object):
             if pos > 0:
                 fp.seek(pos)
 
-        path = self.current_path()
         first_read = True
 
         while True:
+            path = self.current_path()
             with open(path, "r") as fp:
                 if first_read:
                     fast_forward(fp)
@@ -321,14 +321,19 @@ class LogCollector(object):
             file_existed_at_start = self.file_exists()
             self._started.set()
 
-            self.poll_file()
-            if self._stop.is_set() or not self.file_exists():
-                return
+            while True:
+                try:
+                    self.poll_file()
+                    if self._stop.is_set() or not self.file_exists():
+                        return
 
-            if self.is_regular_file():
-                self.collect_file(file_existed_at_start)
-            else:
-                self.collect_fifo()
+                    if self.is_regular_file():
+                        self.collect_file(file_existed_at_start)
+                    else:
+                        self.collect_fifo()
+                    break
+                except FileNotFoundError:
+                    pass
 
         except Stopped:
             pass

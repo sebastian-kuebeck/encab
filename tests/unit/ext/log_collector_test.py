@@ -7,6 +7,7 @@ import os
 import tempfile
 import time
 from datetime import datetime
+from time import sleep
 
 import unittest
 
@@ -145,6 +146,45 @@ class LogCollectorTest(unittest.TestCase):
         self.write_lines(path)
 
         self.assertTrue(source.file_exists())
+
+        source.stop()
+
+        messages = [rec.msg for rec in self.handler.records if rec.levelno == INFO]
+        self.assertEqual(10, len(messages))
+        self.assertEqual([f"line {i % 5}" for i in range(10)], self.recorded_messages())
+
+    def test_remove_source(self):
+        tmpdir = tempfile.mkdtemp()
+        path = os.path.join(tmpdir, "encabtestfile-20230201.log")
+        path_pattern = os.path.join(tmpdir, "encabtestfile-%(%Y%m%d)d.log")
+
+        self.handler.clear()
+
+        source = LogCollector(
+            "test_source",
+            LogPath.variable(path_pattern, dict()),
+            self.logger,
+            poll_interval=0.1,
+        )
+        date = datetime.strptime("20230201160000", "%Y%m%d%H%M%S")
+        source.start(0.1, date)
+
+        self.write_lines(path)
+
+        messages = self.recorded_messages()
+
+        os.remove(path)
+
+        date = datetime.strptime("20230202160000", "%Y%m%d%H%M%S")
+        source.set_current_time(date)
+        path = os.path.join(tmpdir, "encabtestfile-20230202.log")
+
+        sleep(0.1)
+        self.write_lines(path)
+
+        self.assertTrue(source.file_exists())
+
+        os.unlink(path)
 
         source.stop()
 

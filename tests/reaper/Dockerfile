@@ -14,7 +14,7 @@ RUN python3 -m venv $VIRTUAL_ENV && \
 # --------------------------------------------
 # Install Encab 
 #
-ARG ENCAB_WHEEL=encab-0.1.3-py3-none-any.whl
+ARG ENCAB_WHEEL=encab-0.1.4-py3-none-any.whl
 
 ADD ${ENCAB_WHEEL} .
 RUN pip install ${ENCAB_WHEEL} psutil humanize

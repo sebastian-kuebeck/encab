@@ -1,5 +1,8 @@
 # Changes
 
+## 0.1.4 (2024-07-27)
+- fixed log collector rotation bug
+
 ## 0.1.3 (2024-06-24)
 - Updated dependencies
 - Added Python 3.12 test coverage

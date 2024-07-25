@@ -29,7 +29,7 @@ extensions:
                 secret_a:
                     required: true
     tests:
-        module: tests.unit.ext.test_module_extension
+        module: unit.ext.test_module_extension
         settings:
             foo: bar
     log_collector:
@@ -51,6 +51,5 @@ programs:
             - echo $X $Z
             - echo $secret_b
             - echo $PWD
-            - env
             - echo "---- END -----"
-            - sleep 100
+            - sleep 10
