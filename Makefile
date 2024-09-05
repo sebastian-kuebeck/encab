@@ -15,6 +15,9 @@ integration_test:
 load_test:
 	cd tests/load && make test
 
+reaper_test:
+	cd tests/reaper && make test
+
 validate:
 	mypy --config-file mypy.ini -p encab -p tests
 	ruff check src/ tests/

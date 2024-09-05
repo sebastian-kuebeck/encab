@@ -30,7 +30,7 @@ logging what…
 
 .. code:: text
 
-      INFO  encab: encab 0.1.4
+      INFO  encab: encab 0.1.5
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
       ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
@@ -92,6 +92,8 @@ Similar Projects
 - `Circus <https://github.com/circus-tent/circus>`__
 - `s6 <https://github.com/just-containers/s6-overlay>`__
 - `docker systemctl replacement <https://github.com/gdraheim/docker-systemctl-replacement>`__
+- `ProcFusion <https://github.com/linkdd/procfusion>`__
+- `dump-init <https://github.com/Yelp/dumb-init>`__
 
 Further information
 -------------------

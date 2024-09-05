@@ -1,5 +1,9 @@
 # Changes
 
+## 0.1.5 (2024-09-05)
+- refactored and improved log collector
+- fixed api documentation
+
 ## 0.1.4 (2024-07-27)
 - fixed log collector rotation bug
 

@@ -119,7 +119,7 @@ class LogSanitizerExtension(object):
 
     Suppose you have the variable MY_PASSWORD set like this:
 
-    MY_PASSWORD=s3cR37
+    MY_PASSWORD=s3cR37 (*
 
     The name MY_PASSWORD matches the predifined pattern ``*PASSWORD*``,
     so if you run a program like ``echo $MY_PASSWORD``,
@@ -127,6 +127,7 @@ class LogSanitizerExtension(object):
 
     This extension is enabled by default and can be disabled in the extension settings.
 
+    *) this is for documentation purposes only. Never use this or anything else that's available to the public as secret! 
     """
 
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD"]

@@ -36,19 +36,19 @@ class SourceConfig(object):
     """
     The path pattern of the log file
     
-    %(<name>)e inserts the value of the environment variable with name <name>
+    ``%(<name>)e`` inserts the value of the environment variable with name <name>
     
-    %(<dateformat>)d inserts the current time with <dateformat> as python date format, 
+    ``%(<dateformat>)d`` inserts the current time with <dateformat> as python date format, 
     
     see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes
     
-    % must be masked with %%
+    ``%`` must be masked with ``%%``
     
     examples:
     
-    - "%(HOME)e/path" -> "/home/user/path"
-    - "error-%(%y%m%d)d.log" -> "error-20230103.log"
-    - "a%%b.log" -> "a%b.log"
+    - ``%(HOME)e/path`` -> ``/home/user/path``
+    - ``error-%(%y%m%d)d.log`` -> ``error-20230103.log``
+    - ``a%%b.log`` -> ``a%b.log``
     """
 
     offset: Optional[int]
@@ -232,6 +232,8 @@ class LogCollector(object):
         self._stop = Event()
         self._stopped = Event()
         self._current_time: Optional[datetime] = None
+        self._fp: Optional[TextIOBase] = None
+        self._file_existed_at_start = False
 
     def __now(self) -> datetime:
         return self._current_time or datetime.now()
@@ -256,61 +258,96 @@ class LogCollector(object):
         except FileNotFoundError:
             return False
 
+    def check_stopped(self):
+        if self._stop.is_set():
+            raise Stopped()
+
+    def get_fp(self):
+        if self._fp:
+            return self._fp
+        else:
+            raise Stopped()
+
+    def clear_fp(self):
+        self._fp = None
+
+    def log_lines(self):
+        for line in self.get_fp():
+            line = line.rstrip("\r\n\t ")
+            self.logger.log(self.level, line, extra=self.extra)
+
+    def open(self, path: str) -> TextIOBase:
+        fp = open(path, "r")
+        self._fp = fp
+        return fp
+
+    def fast_forward(self):
+        if self.offset == -1 or not self._file_existed_at_start:
+            return
+
+        fp = self.get_fp()
+        fp.seek(0, 2)
+        pos = fp.tell()
+        pos = max(pos - self.offset, 0)
+
+        if pos > 0:
+            fp.seek(pos)
+
+    def poll_data(self, path: str):
+        fp = self.get_fp()
+        pos = fp.tell()
+        self.logger.debug(
+            f"Waiting for new data in file {path}...",
+            extra=self.extra,
+        )
+        self._stop.wait(self.poll_interval)
+        self.check_stopped()
+        fp.seek(pos)
+
     def collect_fifo(self):
         path = self.current_path()
-        with open(path, "r") as fp:
-            for line in fp:
-                line = line.rstrip("\r\n\t ")
-                self.logger.log(self.level, line, extra=self.extra)
+        with self.open(path):
+            self.log_lines()
 
-    def collect_file(self, file_existed_at_start: bool):
-        def fast_forward(fp: TextIOBase):
-            if self.offset == -1 or not file_existed_at_start:
-                return
+    def collect_file(self):
+        path = self.current_path()
+        with self.open(path):
+            self.fast_forward()
+            while True:
+                self.log_lines()
+                self.poll_data(path)
 
-            fp.seek(0, 2)
-            pos = fp.tell()
-            pos = max(pos - self.offset, 0)
+    def same_log_file(self, path: str) -> bool:
+        current_path = self.current_path()
+        same_file = path == current_path
 
-            if pos > 0:
-                fp.seek(pos)
+        if not same_file:
+            mylogger.debug("Log path changed from %s to %s", path, current_path)
 
-        first_read = True
+        return same_file
+
+    def collect_rolling_files(self):
+        is_first_file = True
 
         while True:
             path = self.current_path()
-            with open(path, "r") as fp:
-                if first_read:
-                    fast_forward(fp)
-                    first_read = False
+            with self.open(path):
+                if is_first_file:
+                    self.fast_forward()
+                    is_first_file = False
 
                 while True:
-                    for line in fp:
-                        line = line.rstrip("\r\n\t ")
-                        self.logger.log(self.level, line, extra=self.extra)
+                    self.log_lines()
+                    self.check_stopped()
 
-                    if self._stop.is_set():
-                        raise Stopped()
+                    if not self.same_log_file(path):
+                        break
 
-                    if not self.path.is_fixed():
-                        current_path = self.current_path()
-                        if path != current_path:
-                            mylogger.debug(
-                                "Log path changed from %s to %s", path, current_path
-                            )
-                            path = current_path
-                            break
-
-                    pos = fp.tell()
-                    self.logger.debug(
-                        f"Waiting for new data in file {path}...",
-                        extra=self.extra,
-                    )
-                    self._stop.wait(self.poll_interval)
-                    fp.seek(pos)
+                    self.poll_data(path)
 
     def poll_file(self):
-        while not self._stop.is_set() and not self.file_exists():
+        while not self.file_exists():
+            self.check_stopped()
             self.logger.debug(
                 "Waiting for file %s ...", self.current_path(), extra=self.extra
             )
@@ -318,21 +355,28 @@ class LogCollector(object):
 
     def _run(self):
         try:
-            file_existed_at_start = self.file_exists()
+            self._file_existed_at_start = self.file_exists()
             self._started.set()
 
             while True:
                 try:
+                    self.clear_fp()
                     self.poll_file()
-                    if self._stop.is_set() or not self.file_exists():
-                        return
+                    self.check_stopped()
+                    if not self.file_exists():
+                        raise Stopped()
 
-                    if self.is_regular_file():
-                        self.collect_file(file_existed_at_start)
-                    else:
+                    if not self.is_regular_file():
                         self.collect_fifo()
-                    break
+                    else:
+                        if self.path.is_fixed():
+                            self.collect_file()
+                        else:
+                            self.collect_rolling_files()
+
                 except FileNotFoundError:
+                    pass
+                except BrokenPipeError:
                     pass
 
         except Stopped:
@@ -342,6 +386,7 @@ class LogCollector(object):
                 "Reading source %s failed: %s", self.name, str(e), extra=self.extra
             )
         finally:
+            self.clear_fp()
             self._stopped.set()
 
     def start(self, wait_time: float = 0.1, current_time: Optional[datetime] = None):
@@ -358,6 +403,12 @@ class LogCollector(object):
 
     def stop(self, wait_time: float = 1.0):
         self._stop.set()
+        if self._fp:
+            try:
+                self._fp.close()
+            except IOError:
+                pass
+            self._fp = None
         self._stopped.wait(wait_time)
 
 
