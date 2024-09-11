@@ -30,7 +30,7 @@ and encab cares for the rest.
 Run it and you'll always know who's logging what...
 
 ```text
-   INFO  encab: encab 0.1.5
+   INFO  encab: encab 0.1.6
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
    ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
@@ -89,7 +89,7 @@ supervisord is a process controll system not designed to run in a Container envi
 The result will be something like this:
 
 ```text
-INFO  encab: encab 0.1.5
+INFO  encab: encab 0.1.6
 INFO  encab: Using configuration file ./encab.yml, source: Default location.
 INFO  main: Hello Encab!
 INFO  main: Exited with rc: 0
@@ -162,7 +162,7 @@ INFO  main: Exited with rc: 0
    Result:
 
    ```text
-   INFO  encab: encab 0.1.5
+   INFO  encab: encab 0.1.6
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello world!
    INFO  main: Exited with rc: 0

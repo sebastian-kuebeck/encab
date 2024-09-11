@@ -210,7 +210,7 @@ Output:
 
 .. code:: text
 
-      INFO  encab: encab 0.1.5
+      INFO  encab: encab 0.1.6
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Now this!
       INFO  main: Exited with rc: 0
@@ -307,6 +307,12 @@ Program Configuration
    ``true``: Zombie processes are reaped automatically. Default: ``false`` 
    see: `Zombie Process <https://en.wikipedia.org/wiki/Zombie_process>`_.
 
+- ``restart_delay``: float (optional)
+
+    The restart delay for this program in seconds.
+    By default, programs are not restarted when they stop.
+    If ``restart_delay`` is set, the program is restarted after the restart delay 
+    when it has stopped.
 
 Example:
 

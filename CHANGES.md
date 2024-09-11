@@ -1,5 +1,9 @@
 # Changes
 
+## 0.1.6 (2024-09-24)
+- added restart mechanism for programs
+- fixed log collector documentation
+
 ## 0.1.5 (2024-09-05)
 - refactored and improved log collector
 - fixed api documentation
