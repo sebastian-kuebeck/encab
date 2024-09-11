@@ -259,7 +259,7 @@ example settings:
             settings:
                 sources:
                     error_log:
-                        file: ./error.log
+                        path: ./error.log
 
 Parameters
 ^^^^^^^^^^

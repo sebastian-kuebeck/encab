@@ -336,6 +336,13 @@ class ProgramConfig(AbstractProgramConfig):
         see: https://en.wikipedia.org/wiki/Zombie_process
     """
 
+    restart_delay: Optional[float]
+    """The restart delay for this program in seconds..
+    By default, programs are not restarted when they stop.
+    If `restart_delay` is set, the program is restarted after the restart delay 
+    when it has stopped.
+    """
+
     def __post_init__(self):
         """
         validates fields and sets default values

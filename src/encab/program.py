@@ -119,6 +119,7 @@ class Program(object):
         group = self.config.group
         cwd = self.config.directory
         reap_zombies = self.config.reap_zombies
+        restart_delay = self.config.restart_delay
 
         assert user is None or isinstance(user, int)
         assert group is None or isinstance(group, int)
@@ -143,19 +144,28 @@ class Program(object):
                 state.set(ProgramState.RUNNING)
                 observer.on_run(popen.pid)
 
-            self._process = Process(
-                args,
-                env,
-                user=user,
-                group=group,
-                umask=umask,
-                shell=shell,
-                start_new_session=True,
-                cwd=cwd,
-                reap_zombies=reap_zombies,
-            )
-            self.exit_code = self._process.execute_and_log(on_run, logger, extra)
-            state.handle_exit(self.exit_code, self.command)
+            while True:
+                self._process = Process(
+                    args,
+                    env,
+                    user=user,
+                    group=group,
+                    umask=umask,
+                    shell=shell,
+                    start_new_session=True,
+                    cwd=cwd,
+                    reap_zombies=reap_zombies,
+                )
+
+                self.exit_code = self._process.execute_and_log(on_run, logger, extra)
+                state.handle_exit(self.exit_code, self.command)
+
+                if restart_delay is not None:
+                    state.set(ProgramState.STARTING)
+                    state.wait(float(restart_delay))
+                else:
+                    break
+
         except ProgramCanceledException:
             observer.on_cancel()
             state.set(ProgramState.CANCELED)

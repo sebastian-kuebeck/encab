@@ -1,21 +1,26 @@
-.PHONY:	dist test validate format apidoc html doc browse publish_test
+.PHONY:	clean_dist dist test validate format apidoc html doc browse publish_test
+
+clean_dist:
+	rm -rf dist/*
+	rm -f src/encab.egg-info
 
 dist:
 	rm -rf dist/*
 	python -m build
-	rm -r src/encab.egg-info
+	rm -f src/encab.egg-info
+
 
 test:
 	python -m unittest discover -v -s tests/unit -p '*_test.py'
 	python -m unittest discover -v -s tests/unit/ext -p '*_test.py'
 
-integration_test:
+integration_test: clean_dist
 	cd tests/integration && make test
 
-load_test:
+load_test: clean_dist
 	cd tests/load && make test
 
-reaper_test:
+reaper_test: clean_dist
 	cd tests/reaper && make test
 
 validate:

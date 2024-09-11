@@ -127,7 +127,7 @@ class LogSanitizerExtension(object):
 
     This extension is enabled by default and can be disabled in the extension settings.
 
-    *) this is for documentation purposes only. Never use this or anything else that's available to the public as secret! 
+    *) this is for documentation purposes only. Never use this or anything else that's available to the public as secret!
     """
 
     PATTERNS = ["*KEY*", "*SECRET*", "*PASSWORD"]

@@ -1,5 +1,8 @@
 # Changes
 
+## 0.1.7 (2024-09-24)
+- fixed documentation and version information
+
 ## 0.1.6 (2024-09-24)
 - added restart mechanism for programs
 - fixed log collector documentation
