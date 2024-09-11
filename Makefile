@@ -2,12 +2,12 @@
 
 clean_dist:
 	rm -rf dist/*
-	rm -f src/encab.egg-info
+	rm -rf src/encab.egg-info
 
 dist:
 	rm -rf dist/*
 	python -m build
-	rm -f src/encab.egg-info
+	rm -rf src/encab.egg-info
 
 
 test:
