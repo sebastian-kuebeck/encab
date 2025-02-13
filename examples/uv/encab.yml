@@ -1,0 +1,8 @@
+encab:
+    dry_run: false
+    debug: false
+    halt_on_exit: false
+programs:
+    main:
+        user: runner
+        command: echo "Hello world!"

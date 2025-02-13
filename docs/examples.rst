@@ -82,6 +82,51 @@ In this example, the script is run under a different user...
             user: runner
             command: echo "Hello world!"
 
+Uv Example
+----------
+
+`uv <https://github.com/astral-sh/uv>`__ is a fast, lightweight pip and pipx replacement written in rust.
+
+``Dockerfile``:
+
+.. code:: dockerfile
+
+    FROM debian:bookworm
+
+    # --------------------------------------------
+    # Install uv
+    #
+
+    # The installer requires curl (and certificates) to download the release archive
+    RUN apt-get -q update && apt-get install -y -q --no-install-recommends curl ca-certificates
+
+    # Download the latest installer
+    ADD https://astral.sh/uv/install.sh /uv-installer.sh
+
+    # Run the installer then remove it
+    RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+    # Ensure the installed binary is on the `PATH`
+    ENV PATH="/root/.local/bin/:$PATH"
+
+    # --------------------------------------------
+    # Install Encab 
+    #
+
+    RUN uv tool install encab
+
+    # --------------------------------------------
+    # Add app user
+    # 
+    RUN adduser runner --gecos "" --disabled-login
+
+    # --------------------------------------------
+    # Add encab config and entrypoint
+    # 
+    ADD encab.yml .
+
+    ENTRYPOINT ["encab"]
+
 Apache + Cron Job Example
 -------------------------
 
@@ -150,7 +195,7 @@ Output...
 
 .. code:: text
 
-    INFO  encab: encab 0.1.7
+    INFO  encab: encab 1.0.1
     INFO  encab: Using configuration file ./encab.yml, source: Default location.
     ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
     ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message

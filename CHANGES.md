@@ -1,5 +1,9 @@
 # Changes
 
+## 1.0.1 (2025-02-13)
+- added tests for python 3.13
+- added uv example
+
 ## 0.1.7 (2024-09-24)
 - fixed documentation and version information
 
