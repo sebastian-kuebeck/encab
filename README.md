@@ -1,5 +1,9 @@
 # Encab: A Simple Process Manager
 
+[![image](https://img.shields.io/pypi/v/encab.svg)](https://pypi.python.org/pypi/encab)
+[![image](https://img.shields.io/pypi/l/encab.svg)](https://pypi.python.org/pypi/encab)
+[![image](https://img.shields.io/pypi/pyversions/encab.svg)](https://pypi.python.org/pypi/encab)
+
 **Encab** is a process manager that simplifies running multiple services in a container or from the command line.
 
 It's essentially a replacement for complex, hand-written Docker Container Entrypoint scripts,
