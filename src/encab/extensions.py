@@ -49,7 +49,7 @@ class Extensions(object):
         """
         similar to :meth:`encab.extensions.Extensions.configure_extension`
         but the extension validates it's configuration during a dry run,
-        where the extension isn't actually startet.
+        where the extension isn't actually started.
 
         see :meth:`encab.extensions.Extensions.configure_extension` for details.
 
@@ -69,7 +69,7 @@ class Extensions(object):
         The extension picks up its own settings from the parameter ``config``
         by selecting for the name.
 
-        Depening on the flag ``enabled``, each extension enables or disables its service.
+        Depending on the flag ``enabled``, each extension enables or disables its service.
 
         Encab config example:
 

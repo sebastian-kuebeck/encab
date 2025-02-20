@@ -60,7 +60,7 @@ class ExecutionContext(object):
 
 class Program(object):
     """
-    Starts a program and caputures stdout and sterr as log messages
+    Starts a program and captures stdout and stderr as log messages
     """
 
     def __init__(

@@ -112,7 +112,7 @@ class StartupScriptSettings(object):
 class StartupScript:
     """
     Run scripts before the actual programs are started.
-    In addition, environman variables can be loaded from a file or generated
+    In addition, environment variables can be loaded from a file or generated
     using a script.
     """
 

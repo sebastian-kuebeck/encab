@@ -6,7 +6,7 @@ log_sanitizer
 
     Simple log sanitizer for environment variable values.
     It looks for values of environment variables whose names match
-    certain patterns and replaces them with asterics.
+    certain patterns and replaces them with asterisks.
     
     Predefined patterns are:
     
@@ -23,9 +23,9 @@ log_sanitizer
     
     ``MY_PASSWORD=s3cR37``
     
-    The name ``MY_PASSWORD`` matches the predifined pattern ``*PASSWORD*``,
+    The name ``MY_PASSWORD`` matches the predefined pattern ``*PASSWORD*``,
     so if you run a program like ``echo $MY_PASSWORD``, 
-    the output will be raplaced by ``******``.
+    the output will be replaced by ``******``.
     
     This extension is enabled by default and can be disabled in the extension settings.
 
@@ -47,7 +47,7 @@ Parameters
 
 ``patterns`` (List, Optional)
 
-set sensitive environmen variable name patterns whose values will be masked.
+set sensitive environment variable name patterns whose values will be masked.
 UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)       
     
 example:
@@ -56,13 +56,13 @@ example:
 
 ``override``: Boolean (optional)
 
-if true, builtin patterns are overriden
+if true, builtin patterns are overridden
 
 startup_script
 --------------
 
 Run scripts before the actual programs are started.
-In addition, environman variables can be loaded from a file or generated using a script.
+In addition, environment variables can be loaded from a file or generated using a script.
 
 Example:
 
@@ -314,7 +314,7 @@ One of ``CRITICAL``, ``FATAL``, ``ERROR``, ``WARN``,
 ``poll_interval``: float (optional)
 
 When the source file does not exist yet or the source file is a regular file and its contents has already been logged, 
-the plugin waits until there is new data available. The poll interval (unit seconds) defines the intervall 
+the plugin waits until there is new data available. The poll interval (unit seconds) defines the interval 
 between the tomes when the plugin looks for new content.
 
 

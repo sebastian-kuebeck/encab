@@ -55,7 +55,7 @@ publish: dist
 # To run tests with different environments
 # 
 # Prerequisites:
-# - make sure you have pyenv and tox insalled
+# - make sure you have pyenv and tox installed
 # - install all python versions using 'pyenv local <versions>' specified in tox.ini
 #
 # see:

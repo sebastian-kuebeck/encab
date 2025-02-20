@@ -43,7 +43,7 @@ class LogSanitizerSettings(object):
     """
 
     patterns: Optional[List[str]]
-    """set sensitive environmen variable name patterns whose values will be masked.
+    """set sensitive environment variable name patterns whose values will be masked.
        UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)       
     
        example:
@@ -104,7 +104,7 @@ class LogSanitizerExtension(object):
     """
     Simple log sanitizer for environment variable values.
     It looks for values of environment variables whose names match
-    certain patterns and replaces them with asterics.
+    certain patterns and replaces them with asterisks.
 
     Predefined patterns are:
 
@@ -113,7 +113,7 @@ class LogSanitizerExtension(object):
     - ``*PASSWORD*``
 
     For patterns, UNIX file pattern rules are used (see https://docs.python.org/3/library/fnmatch.html#module-fnmatch)
-    They can be extended or overriden in the extension settings.
+    They can be extended or overridden in the extension settings.
 
     Example:
 
@@ -121,9 +121,9 @@ class LogSanitizerExtension(object):
 
     MY_PASSWORD=s3cR37 (*
 
-    The name MY_PASSWORD matches the predifined pattern ``*PASSWORD*``,
+    The name MY_PASSWORD matches the predefined pattern ``*PASSWORD*``,
     so if you run a program like ``echo $MY_PASSWORD``,
-    the output will be raplaced by ``******``.
+    the output will be replaced by ``******``.
 
     This extension is enabled by default and can be disabled in the extension settings.
 

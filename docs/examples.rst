@@ -68,8 +68,8 @@ Pipx Example
 
     ENTRYPOINT ["encab"]
 
-As a general rule, appliactions inside a container should not run as root, 
-especially if they comunicate with the outside world.
+As a general rule, applications inside a container should not run as root, 
+especially if they communicate with the outside world.
 
 In this example, the script is run under a different user...
 

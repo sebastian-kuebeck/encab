@@ -55,7 +55,7 @@ class AbstractProgramConfig(AbstractConfig):
     """
 
     environment: Optional[Dict[str, str]]
-    """set additional environmment variables"""
+    """set additional environment variables"""
 
     debug: Optional[bool]
     """if True, encab logs debug information. Default: False"""
@@ -149,7 +149,7 @@ class AbstractProgramConfig(AbstractConfig):
 
     def _set_log_level(self):
         """
-        selts the log level and turns it into an int if necessary
+        sets the log level and turns it into an int if necessary
 
         :raises ConfigError: if an unspecified log level is given
         """
@@ -215,7 +215,7 @@ class AbstractProgramConfig(AbstractConfig):
 
     def extend(self, other: "AbstractProgramConfig"):
         """
-        Extends configration with values from a given configuration
+        Extends configuration with values from a given configuration
 
         If a field of the current configuration was not set, it is set by the field
         value of the given configuration.
@@ -280,7 +280,7 @@ class EncabConfig(AbstractProgramConfig):
 @dataclass
 class ProgramConfig(AbstractProgramConfig):
     """
-    reprensents a program configuraion
+    represents a program configuration
 
     contains all static settings to start a program
     """

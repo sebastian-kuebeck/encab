@@ -7,7 +7,7 @@ from .extensions import extensions
 
 class Programs(object):
     """
-    controls the lifecycles of all configured programs
+    controls the lifecycle of all configured programs
     """
 
     def __init__(

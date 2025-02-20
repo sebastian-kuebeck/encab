@@ -20,7 +20,7 @@ All Variables are optional.
 
 -  ``ENCAB_CONFIG``: the encab configuration
 -  ``ENCAB_DRY_RUN``: overrides ``encab/dry_run`` in the encab
-   configuration. 0: Dry run is disbaled 1: Dry run is enabled
+   configuration. 0: Dry run is disabled 1: Dry run is enabled
 
 Contents
 ~~~~~~~~
@@ -34,7 +34,7 @@ and `Common config for encab and programs section`_ for details.
 ``extensions``: Mapping (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-maps **Extention Names** to **Extension Settings**.
+maps **Extension Names** to **Extension Settings**.
 
 There are two types of extension:
 
@@ -47,7 +47,7 @@ external extensions are identified by their **python module name**.
 
 Currently, there are the following build in Extensions:
 
-- ``log_satnitizer``
+- ``log_sanitizer``
 - ``startup_script``
 - ``validation``
 
@@ -153,7 +153,7 @@ Extension Settings
 -  ``enabled``: Boolean (optional) true: the extension is enabled
 
     Wether or not an extension is enabled by default is determined by the extension itself.
-    For built in extensions, only the log_satnitizer extension is enabled by default.
+    For built in extensions, only the log_sanitizer extension is enabled by default.
 
 -  ``module``: String (optional) The extension module name
 
@@ -269,7 +269,7 @@ Program Configuration
 
 -  ``environment``: Map, optional
 
-   additional environmment variables speciefied as a map.
+   additional environment variables specified as a map.
 
    Example:
 
@@ -317,7 +317,7 @@ Program Configuration
 Example:
 
 The following configuration will start the program ``sleep`` first, then
-it runs the scripts in main with the additionasl environment variables
+it runs the scripts in main with the additional environment variables
 ``X`` and ``Y``.
 
 .. code:: yaml

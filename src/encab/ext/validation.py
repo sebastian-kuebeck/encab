@@ -103,7 +103,7 @@ class Validation(object):
         if self.format not in SUPPORTED_FORMATS:
             formats = ", ".join(SUPPORTED_FORMATS)
             raise ConfigError(
-                f"Unsuported float format. Supported formats are: {formats}"
+                f"Unsupported float format. Supported formats are: {formats}"
             )
 
     def _set_regex(self):
@@ -159,7 +159,7 @@ class ValidationSettings(object):
     """
 
     variables: Optional[Dict[str, Validation]]
-    """ the environmant variable specifications """
+    """ the environment variable specifications """
 
     include: Optional[str]
     """ include additional environment variable specifications from file 
