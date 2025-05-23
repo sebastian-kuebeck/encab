@@ -1,5 +1,5 @@
 # Example Dockerfile
-FROM python:3.10.8-slim-bullseye
+FROM python:3.13.3-slim-bookworm
 
 RUN apt-get -q update && \
     apt-get -y -q install htop

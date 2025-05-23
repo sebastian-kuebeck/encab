@@ -20,7 +20,7 @@ ENV PATH="/root/.local/bin/:$PATH"
 # --------------------------------------------
 # Install Encab 
 #
-ARG ENCAB_WHEEL=encab-1.0.1-py3-none-any.whl
+ARG ENCAB_WHEEL=encab-1.0.2-py3-none-any.whl
 
 ADD ${ENCAB_WHEEL} .
 RUN uv tool install ./${ENCAB_WHEEL}

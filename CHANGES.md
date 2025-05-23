@@ -1,5 +1,9 @@
 # Changes
 
+## 1.0.2 (2025-05-23)
+- added support for Python 3.14 and 3.15 
+- updated dependencies
+
 ## 1.0.1 (2025-02-13)
 - added tests for python 3.13
 - added uv example
