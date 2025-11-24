@@ -214,6 +214,7 @@ class Process(object):
         uid = self._user
         gid = self._group
         umask = self._umask
+        user_data = None
 
         if uid and os.getuid() != uid:
             try:

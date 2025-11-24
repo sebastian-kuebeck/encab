@@ -17,53 +17,53 @@ encab.config module
 
 .. automodule:: encab.config
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 encab.encab module
 ------------------
 
 .. automodule:: encab.encab
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 encab.extensions module
 -----------------------
 
 .. automodule:: encab.extensions
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 encab.program module
 --------------------
 
 .. automodule:: encab.program
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 encab.program\_state module
 ---------------------------
 
 .. automodule:: encab.program_state
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 encab.programs module
 ---------------------
 
 .. automodule:: encab.programs
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: encab
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

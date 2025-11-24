@@ -1,5 +1,8 @@
 # Changes
 
+## 1.0.3 (2025-11-24)
+- updated dependencies
+
 ## 1.0.2 (2025-05-23)
 - added support for Python 3.14 and 3.15 
 - updated dependencies
