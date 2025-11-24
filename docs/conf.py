@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'encab'
-copyright = '2023, 2024 Sebastian Kuebeck'
+copyright = '2023-2025 Sebastian Kuebeck'
 author = 'Sebastian Kuebeck'
 
 # The full version, including alpha/beta/rc tags
