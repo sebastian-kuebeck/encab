@@ -1,5 +1,7 @@
 .PHONY:	clean_dist dist test validate format apidoc html doc browse publish_test
 
+PYTHONPATH=./src:./tests
+
 clean_dist:
 	rm -rf dist/*
 	rm -rf src/encab.egg-info
@@ -8,7 +10,6 @@ dist:
 	rm -rf dist/*
 	python -m build
 	rm -rf src/encab.egg-info
-
 
 test:
 	python -m unittest discover -v -s tests/unit -p '*_test.py'
@@ -31,7 +32,7 @@ audit:
 	pip-audit -r requirements.txt
 
 format:
-	black src/encab/*.py src/encab/common/*.py src/encab/ext/*.py tests/unit/*.py tests/unit/ext/*.py tests/integration/*.py tests/load/*.py 
+	black --fast src/encab/*.py src/encab/common/*.py src/encab/ext/*.py tests/unit/*.py tests/unit/ext/*.py tests/integration/*.py tests/load/*.py 
 
 apidoc:
 	rm -f docs/encab.rst docs/encab.ext.rst docs/modules.rst
@@ -64,4 +65,3 @@ publish: dist
 #
 tox:
 	tox -p
-

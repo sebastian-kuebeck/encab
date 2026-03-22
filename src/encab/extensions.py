@@ -3,7 +3,6 @@ from typing import Dict, Any, List
 from importlib import import_module
 from pluggy import HookspecMarker, PluginManager, PluginValidationError  # type: ignore
 
-
 ENCAB = "encab"
 
 extension_method = HookspecMarker(ENCAB)

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "encab"
-version = "1.0.3"
+version = "1.0.4"
 authors = [
   { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
@@ -25,9 +25,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
 dependencies = [
-  "PyYAML >= 6.0, < 7",
-  "types-PyYAML >= 6.0.12.2, < 7",
+  "PyYAML >= 6.0.3, < 7",
   "marshmallow >= 3.19.0, < 5",
   "marshmallow-dataclass[enum,union] >= 8.5.10, < 9",
   "marshmallow-enum >= 1.5.1, < 2",
