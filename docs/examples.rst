@@ -42,14 +42,12 @@ Pipx Example
 
 .. code:: dockerfile
 
-    FROM debian:bullseye
+    FROM debian:bookworm
 
     # --------------------------------------------
     # Install pipx
     #
-    RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
-        apt-get -q update && \
-        apt-get -y -q install pipx/bullseye-backports
+    apt-get -q update && apt-get -y -q install pipx
     # --------------------------------------------
     # Install Encab 
     #
@@ -154,14 +152,8 @@ In addition to tempreaper, we want add the following entry to crontab...
     # --------------------------------------------
     # Install cron
 
-    RUN apt-get -q update && apt-get -y -q install cron tmpreaper
+    RUN apt-get -q update && apt-get -y -q install cron tmpreaper pipx
 
-    # --------------------------------------------
-    # Install pipx
-    #
-    RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
-        apt-get -q update && \
-        apt-get -y -q install pipx/bullseye-backports
     # --------------------------------------------
     # Install Encab 
     RUN pipx install encab

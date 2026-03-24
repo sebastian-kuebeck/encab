@@ -4,14 +4,8 @@ FROM httpd:2.4
 # --------------------------------------------
 # Install cron
 
-RUN apt-get -q update && apt-get -y -q install cron tmpreaper
+RUN apt-get -q update && apt-get -y -q install cron tmpreaper pipx
 
-# --------------------------------------------
-# Install pipx
-#
-RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
-    apt-get -q update && \
-    apt-get -y -q install pipx/bullseye-backports
 # --------------------------------------------
 # Install Encab 
 ARG ENCAB_WHEEL=encab-1.0.4-py3-none-any.whl

@@ -22,6 +22,7 @@ define what you want to run in your container in ``encab.yml``,
       programs:
          cron:
             command: cron -f
+            restart_delay: 1
          main:
             command: httpd-foreground
 

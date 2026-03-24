@@ -3,6 +3,7 @@ encab:
   debug: False
 programs:
   cron:
+    restart_delay: 1
     command: cron -f
   main:
     command: httpd-foreground

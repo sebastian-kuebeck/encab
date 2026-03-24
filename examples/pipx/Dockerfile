@@ -1,12 +1,10 @@
 # Example Dockerfile
-FROM debian:bullseye
+FROM debian:bookworm
 
 # --------------------------------------------
 # Install pipx
 #
-RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list && \
-    apt-get -q update && \
-    apt-get -y -q install pipx/bullseye-backports
+RUN apt-get -q update && apt-get -y -q install pipx
 # --------------------------------------------
 # Install Encab 
 #

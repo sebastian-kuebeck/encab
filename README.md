@@ -26,6 +26,7 @@ together with the encab configuration file `encab.yml`,
    programs:
       cron:
          command: cron -f
+         restart_delay: 1
       main:
          command: httpd-foreground
 ```
