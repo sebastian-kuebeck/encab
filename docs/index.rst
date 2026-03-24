@@ -43,12 +43,6 @@ It shares some similarities with
 encab but supervisord is a process controll system not designed to run
 in a Container environment.
 
-Note
-----
-
-**This tool is still under development. Sufficient for local experiments
-but not mature enough for production use!**
-
 Features
 --------
 
@@ -58,6 +52,25 @@ Features
 -  handle environment variables in a flexible way
 -  simplify container debugging
 -  load, build, validate environment variables
+
+Design Goals
+------------
+
+- Reliability, robustness, stability and backward compatibility
+- Predictable process lifecycle management
+- Correct signal handling (SIGTERM, SIGINT)
+- Clean logging and stdout/stderr handling
+- Minimal overhead in container environments
+
+Reliability
+-----------
+
+Encab is tested through:
+
+- Integration and load tests covering multi-process setups
+- Real-world production workloads
+- Continuous usage in internal systems
+
 
 Narrative Documentation
 -----------------------
