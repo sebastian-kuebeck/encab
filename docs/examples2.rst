@@ -65,8 +65,8 @@ The `encab configuration file <https://github.com/sebastian-kuebeck/wordpress-co
                 - LOGGED_IN_KEY
                 - WORDPRESS_NONCE_KEY
 
-        # The startup scrips does the auto installation if necessary before the programs are started
-        # 
+        # The startup scrips does the auto installation 
+        # on first start before the programs are started
         startup_script:
             enabled: true
             settings:
