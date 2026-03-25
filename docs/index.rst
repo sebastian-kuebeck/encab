@@ -83,6 +83,7 @@ Narrative Documentation
    configuration.rst
    extensions.rst
    examples.rst
+   examples2.rst
 
 API Documentation
 -----------------

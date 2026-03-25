@@ -180,6 +180,7 @@ In addition to tempreaper, we want add the following entry to crontab...
     programs:
         cron:
             command: cron -f
+            restart_delay: 1 # restart cron after one second should it stop
         main:
             command: httpd-foreground
 
