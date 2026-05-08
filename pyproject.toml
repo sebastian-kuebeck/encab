@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "encab"
-version = "1.0.4"
+version = "1.0.5"
 authors = [
   { name="Sebastian Kuebeck", email="sebastian.kuebeck@encab.io" },
 ]
@@ -12,6 +12,7 @@ description = "Process manager"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -29,10 +30,11 @@ classifiers = [
 dependencies = [
   "PyYAML >= 6.0.3, < 7",
   "marshmallow >= 3.19.0, < 5",
-  "marshmallow-dataclass[enum,union] >= 8.5.10, < 9",
+  "marshmallow-dataclass >= 8.5.10, < 9",
   "marshmallow-enum >= 1.5.1, < 2",
   "pluggy >= 1.0.0, < 2",
-  "python-dotenv >= 0.21.1, < 2"
+  "python-dotenv >= 0.21.1, < 2",
+  "setuptools >= 82.0.1",
 ]
 
 [project.urls]

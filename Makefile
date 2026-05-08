@@ -2,6 +2,8 @@
 
 PYTHONPATH=./src:./tests
 
+export PYTHONPATH
+
 clean_dist:
 	rm -rf dist/*
 	rm -rf src/encab.egg-info
@@ -29,7 +31,8 @@ validate:
 	ruff check src/ tests/
 
 audit:
-	pip-audit -r requirements.txt
+	pipcanary -p pyproject.toml -l requirements-locked.txt
+	pipcanary -r requirements-dev.txt -l requirements-locked.txt
 
 format:
 	black --fast src/encab/*.py src/encab/common/*.py src/encab/ext/*.py tests/unit/*.py tests/unit/ext/*.py tests/integration/*.py tests/load/*.py 

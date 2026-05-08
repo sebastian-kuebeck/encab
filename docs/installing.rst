@@ -11,7 +11,16 @@ Install locally
    `virtualenv <https://virtualenv.pypa.io/en/latest/>`__,
    Python Version 3.9 or higher.
 
-2. Create sample encab file `encab.yml`
+2. Install encab
+
+.. code:: sh
+
+   pip install encab
+
+Test installation
+~~~~~~~~~~~~~~~~~
+
+1. Create sample encab file `encab.yml`
 
 .. code:: yaml
 
@@ -22,7 +31,7 @@ Install locally
          sh:
             - echo "Hello Encab!"
 
-3. Run locally:
+2. Run locally:
 
 .. code:: sh
 
@@ -32,7 +41,7 @@ The result will be something like this:
 
 .. code:: text
 
-   INFO  encab: encab 1.0.4
+   INFO  encab: encab 1.0.5
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello Encab!
    INFO  main: Exited with rc: 0
@@ -89,6 +98,9 @@ Install in Container
    docker build -t encab_minimum .
 
 
+Test installation
+~~~~~~~~~~~~~~~~~
+
 1. Run container
 
 .. code:: sh
@@ -99,7 +111,7 @@ Result:
 
 .. code:: text
 
-   INFO  encab: encab 1.0.4
+   INFO  encab: encab 1.0.5
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  main: Hello world!
    INFO  main: Exited with rc: 0
@@ -165,7 +177,7 @@ like this:
 
 .. code:: text
 
-   INFO  encab: encab 1.0.4
+   INFO  encab: encab 1.0.5
    INFO  encab: Using configuration file ./encab.yml, source: Default location.
    INFO  encab: Dry run. No program will be started.
    INFO  encab: settings are valid.
@@ -197,7 +209,7 @@ Deployment
       # --------------------------------------------
       # Install Encab 
       #
-      ARG ENCAB_WHEEL=encab-1.0.4-py3-none-any.whl
+      ARG ENCAB_WHEEL=encab-1.0.5-py3-none-any.whl
 
       ENV PATH=$PATH:/root/.local/bin
       RUN python3 -m pip install --user pipx
@@ -229,7 +241,7 @@ Deployment
 
    .. code:: text
 
-      INFO  encab: encab 1.0.4
+      INFO  encab: encab 1.0.5
       INFO  encab: Using configuration file ./encab.yml, source: Default location.
       INFO  main: Hello world!
       INFO  main: Exited with rc: 0

@@ -1,5 +1,5 @@
 # Example Dockerfile
-FROM python:3.10.8-slim-bullseye
+FROM python:3.14.4-slim-trixie
 
 # --------------------------------------------
 # Install Venv 

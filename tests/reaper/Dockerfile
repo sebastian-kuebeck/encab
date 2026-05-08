@@ -1,5 +1,5 @@
 # Example Dockerfile
-FROM python:3.13.3-slim-bookworm
+FROM python:3.14.4-slim-trixie
 
 RUN apt-get -y -q update && apt-get install -y -q procps
 
@@ -14,7 +14,7 @@ RUN python3 -m venv $VIRTUAL_ENV && \
 # --------------------------------------------
 # Install Encab 
 #
-ARG ENCAB_WHEEL=encab-1.0.4-py3-none-any.whl
+ARG ENCAB_WHEEL=encab-1.0.5-py3-none-any.whl
 
 ADD ${ENCAB_WHEEL} .
 RUN pip install ${ENCAB_WHEEL} psutil humanize

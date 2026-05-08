@@ -1,5 +1,8 @@
 # Changes
 
+## 1.0.5 (2026-05-08)
+- updated dependencies
+
 ## 1.0.4 (2026-03-23)
 - updated dependencies
 

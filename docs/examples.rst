@@ -188,7 +188,7 @@ Output...
 
 .. code:: text
 
-    INFO  encab: encab 1.0.4
+    INFO  encab: encab 1.0.5
     INFO  encab: Using configuration file ./encab.yml, source: Default location.
     ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
     ERROR main: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
