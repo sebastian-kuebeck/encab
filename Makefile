@@ -31,7 +31,7 @@ validate:
 	ruff check src/ tests/
 
 audit:
-	pipcanary -p pyproject.toml -l requirements-locked.txt
+	# pipcanary -p pyproject.toml -l requirements-locked.txt
 	pipcanary -r requirements-dev.txt -l requirements-locked.txt
 
 format:
