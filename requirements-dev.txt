@@ -29,15 +29,7 @@ Sphinx~=9.0.4
 sphinx_rtd_theme~=3.1.0
 
 # Security
-cachetools<=7.0.6
-certifi<=2026-05-20T11:46:50
-click<=8.3.3 
-librt<=0.9.0
-markdown-it-py<=4.0.0
-python-discovery<=1.2.2
-types-PyYAML<=6.0.12.20260408
-urllib3<=2.7.0
-virtualenv<=21.3.0
-pip>=26.1.2
-requests<=2.33.1
-idna<=3.15
+filelock<=4.0.1
+pip>=26.2.0
+platformdirs<=4.11.11
+virtualenv<=21.9.0
