@@ -38,4 +38,4 @@ pyproject-api<=1.12.0
 python-discovery<=1.6.4
 sphinxcontrib-jsmath<=1.0.1
 setuptools<=84.2.0
-virtualenv<=21.14.11
+virtualenv<=21.14.13
